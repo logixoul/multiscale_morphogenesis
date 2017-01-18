@@ -73,13 +73,13 @@ private:
 enum nofill {};
 
 template<class T, class MemoryLayoutPolicy = XSequential>
-class Array2D;
+struct Array2D;
 
 void copyCvtData(ci::Surface8u const& surface, Array2D<Vec3f> dst);
 void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<Vec3f> dst);
 void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<float> dst);
 
-template<class T, class MemoryLayoutPolicy = XSequential>
+template<class T, class MemoryLayoutPolicy>
 struct Array2D
 {
 	T* data;
@@ -191,7 +191,9 @@ template<class F> float apply(float v, F f)
 	return f(v);
 }
 
-#define forxy(w, h) for(int i = 0; i < w; i++) for(int j = 0; j < h; j++)
+// not sure if the following is needed. it causes a macro redefinition warning.
+// commenting it out until I've seen whether removing it breaks my projs.
+// #define forxy(w, h) for(int i = 0; i < w; i++) for(int j = 0; j < h; j++)
 #define forxy(image) \
 	for(Vec2i p(0, 0); p.x < image.w; p.x++) \
 		for(p.y = 0; p.y < image.h; p.y++) \

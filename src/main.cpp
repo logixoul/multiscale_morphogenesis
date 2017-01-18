@@ -132,7 +132,7 @@ struct SApp : AppBasic {
 				img(p)+=imgadd_accum(p);
 			}
 		});
-		//img=::to01(img);
+		img=::to01(img);
 		sw::timeit("blur", [&]() {
 			auto imgb=gaussianBlur(img, 3);
 			//auto imgb=gaussianBlur(img, 6*2+1);
@@ -146,11 +146,11 @@ struct SApp : AppBasic {
 			float avg = sum / (float)img.area;
 			forxy(img)
 			{
-				//img(p) += .5f - avg;
-				img(p) *= .5f / avg;
+				img(p) += .5f - avg;
+				//img(p) *= .5f / avg;
 			}
 		});
-		if(0)sw::timeit("threshold", [&]() {
+		sw::timeit("threshold", [&]() {
 			forxy(img) {
 				auto& c=img(p);
 				c = 3.0f*c*c-2.0f*c*c*c;
@@ -209,7 +209,8 @@ struct SApp : AppBasic {
 		if(pause2) {
 			return;
 		}
-		img = multiscaleApply(img, update_1_scale);
+		//img = multiscaleApply(img, update_1_scale);
+		img = update_1_scale(img);
 	}
 	void draw()
 	{
@@ -223,19 +224,24 @@ struct SApp : AppBasic {
 		update_();
 		cout <<"frame# "<<getElapsedFrames()<<endl;
 		sw::timeit("draw", [&]() {
-			vector<gl::Texture> ordered;
-			do {
-				foreach(auto& pair, texs) {
-					ordered.push_back(pair.second);
-				}
-			}while(0);
+			if(1) {
+				auto tex = gtex(img);
+				gl::draw(tex, getWindowBounds());
+			} else {
+				vector<gl::Texture> ordered;
+				do {
+					foreach(auto& pair, texs) {
+						ordered.push_back(pair.second);
+					}
+				}while(0);
 		
-			float my=max(0.0f,min(1.0f,mouseY));
-			int i=(texs.size()-1)*my;
-			auto tex=ordered[i];
-			tex.bind();
-			//tex.setMagFilter(GL_NEAREST);
-			gl::draw(tex, getWindowBounds());
+				float my=max(0.0f,min(1.0f,mouseY));
+				int i=(texs.size()-1)*my;
+				auto tex=ordered[i];
+				tex.bind();
+				//tex.setMagFilter(GL_NEAREST);
+				gl::draw(tex, getWindowBounds());
+			}
 		});
 		cfg1::print();
 		sw::endFrame();
