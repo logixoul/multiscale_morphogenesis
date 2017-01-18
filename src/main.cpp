@@ -78,9 +78,9 @@ struct SApp : AppBasic {
 		auto perpLeft = [&](Vec2f v) { return Vec2f(-v.y, v.x); }; //correct
 		auto perpRight = [&](Vec2f v) { return -perpLeft(v); }; //correct
 		auto guidance = Array2D<float>(img.w, img.h);
-		guidance = img;
-		if(0)sw::timeit("guidance blurs", [&]() {
-			float sumw=0.0f;
+		//guidance = img;
+		sw::timeit("guidance blurs", [&]() {
+			/*float sumw=0.0f;
 			for(int r = 0; r < 30; r+=9) {
 				auto blurred = gaussianBlur(img, r * 2 + 1);
 				//float w = r * r;
@@ -90,8 +90,8 @@ struct SApp : AppBasic {
 					guidance(p) += w * blurred(p);
 			}
 			forxy(guidance)
-				guidance(p) /= sumw;
-			//guidance = gaussianBlur(img, 6);
+				guidance(p) /= sumw;*/
+			guidance = gaussianBlur(img, 6);
 		});
 		auto imgadd=Array2D<float>(img.w,img.h);
 		Array2D<Vec2f> gradients;
@@ -112,12 +112,6 @@ struct SApp : AppBasic {
 					float valLeft = getBilinear<float, WrapModes::NoWrap>(guidance, p+gradP);
 					float valRight = getBilinear<float, WrapModes::NoWrap>(guidance, p-gradP);
 					float add = (val - (valLeft + valRight) * .5f);
-					//add = max(0.0f, add);
-					//if(abs(add) < .1f)
-					//	imgadd(x, y) = -add * abc;
-					//else
-					//	imgadd(x, y) = add * abc;
-					//add = sgn(add) * sqrt(abs(add));
 					imgadd(x, y) = add * abc;
 				}
 			}
