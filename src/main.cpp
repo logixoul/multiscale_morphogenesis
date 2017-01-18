@@ -118,8 +118,6 @@ struct SApp : AppBasic {
 					//else
 					//	imgadd(x, y) = add * abc;
 					//add = sgn(add) * sqrt(abs(add));
-					add = max(0.0f, add);
-					add = add * exp(-add * 4.0f);
 					imgadd(x, y) = add * abc;
 				}
 			}
@@ -179,11 +177,11 @@ struct SApp : AppBasic {
 		foreach(auto& s, origScales) s = s.clone();
 		int lastLevel = 0;
 		for(int i = scales.size() - 1; i >= lastLevel; i--) {
-			//texs[i] = gtex(scales[i]);
+			texs[i] = gtex(scales[i]);
 			auto& thisScale = scales[i];
 			auto& thisOrigScale = origScales[i];
 			auto transformed = keys['0']?thisScale:func(thisScale);
-			/*auto diff = ::map(transformed, [&](Vec2i p) { return transformed(p) - thisOrigScale(p); });
+			auto diff = ::map(transformed, [&](Vec2i p) { return transformed(p) - thisOrigScale(p); });
 			forxy(diff) {
 				float w = 1.0f-pow(i/float(scales.size()-1), 10.0f);
 				w = max(0.0f, min(1.0f, w));
@@ -201,7 +199,7 @@ struct SApp : AppBasic {
 			auto upscaledDiff = ::resize(diff, nextScaleUp.Size(), filter);
 			forxy(nextScaleUp) {
 				nextScaleUp(p) += upscaledDiff(p);
-			}*/
+			}
 			//cout <<"Finished loop, scaleCount is "<<scales.size()<<endl;
 		}
 		return scales[lastLevel];
@@ -211,8 +209,7 @@ struct SApp : AppBasic {
 		if(pause2) {
 			return;
 		}
-		//img = multiscaleApply(img, update_1_scale);
-		img=update_1_scale(img);
+		img = multiscaleApply(img, update_1_scale);
 	}
 	void draw()
 	{
@@ -226,7 +223,7 @@ struct SApp : AppBasic {
 		update_();
 		cout <<"frame# "<<getElapsedFrames()<<endl;
 		sw::timeit("draw", [&]() {
-			if(1){
+			if(0){
 				auto tex=gtex(img);
 				/*if(0)tex = shade2(tex,
 					"float f = fetch1();"
@@ -258,7 +255,7 @@ struct SApp : AppBasic {
 				int i=(texs.size()-1)*my;
 				auto tex=ordered[i];
 				tex.bind();
-				tex.setMagFilter(GL_NEAREST);
+				//tex.setMagFilter(GL_NEAREST);
 				gl::draw(tex, getWindowBounds());
 
 			}
