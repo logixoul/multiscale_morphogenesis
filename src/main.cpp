@@ -129,11 +129,10 @@ struct SApp : AppBasic {
 		img=::to01(img);
 		sw::timeit("blur", [&]() {
 			auto imgb=gaussianBlur(img, 3);
-			//auto imgb=gaussianBlur(img, 6*2+1);
-			img=imgb;
-			/*forxy(img) {
-				img(p) = lerp(img(p), imgb(p), .3f);
-			}*/
+			//img=imgb;
+			forxy(img) {
+				img(p) = lerp(img(p), imgb(p), .8f);
+			}
 		});
 		sw::timeit("restore avg", [&]() {
 			float sum = std::accumulate(img.begin(), img.end(), 0.0f);
@@ -141,13 +140,11 @@ struct SApp : AppBasic {
 			forxy(img)
 			{
 				img(p) += .5f - avg;
-				//img(p) *= .5f / avg;
 			}
 		});
 		sw::timeit("threshold", [&]() {
 			forxy(img) {
 				auto& c=img(p);
-				c = 3.0f*c*c-2.0f*c*c*c;
 				c = 3.0f*c*c-2.0f*c*c*c;
 			}
 		});
