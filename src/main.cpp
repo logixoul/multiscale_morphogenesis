@@ -223,42 +223,19 @@ struct SApp : AppBasic {
 		update_();
 		cout <<"frame# "<<getElapsedFrames()<<endl;
 		sw::timeit("draw", [&]() {
-			if(0){
-				auto tex=gtex(img);
-				/*if(0)tex = shade2(tex,
-					"float f = fetch1();"
-					//"f/=f+1.0;"
-					"f=min(f,1.0);"
-					"vec3 red=vec3(1.0,0.0,0.0);"
-					"if(f<.5) _out=f*2.0*red;"
-					"else _out=mix(red, vec3(1.0), (f-.5)*2.0);",
-					ShadeOpts().ifmt(GL_RGB16F));*/
-				//tex=shade2(tex, "float f=fetch1(); f=smoothstep(.45,.55,f); _out=vec3(f);");
-				//auto tex2=gpuBlur2_3::run(tex, 2, 2);
-				//tex=shade2(tex,tex2, "float f=fetch1()/fetch1(tex2); _out=vec3(f);");
-				//tex=shade2(tex, "float f=fetch1(); f=smoothstep(1.95,2.05,f); _out=vec3(f);");
-				//auto databack=gettexdata<float>(tex,GL_RED,GL_FLOAT);
-				mm(img,"img");
-				//mm(databack,"databack");
-				gl::draw(tex, getWindowBounds());
-				
-				//auto dbg=gtex(im-
-			}else{
-				vector<gl::Texture> ordered;
-				do {
-					foreach(auto& pair, texs) {
-						ordered.push_back(pair.second);
-					}
-				}while(0);
+			vector<gl::Texture> ordered;
+			do {
+				foreach(auto& pair, texs) {
+					ordered.push_back(pair.second);
+				}
+			}while(0);
 		
-				float my=max(0.0f,min(1.0f,mouseY));
-				int i=(texs.size()-1)*my;
-				auto tex=ordered[i];
-				tex.bind();
-				//tex.setMagFilter(GL_NEAREST);
-				gl::draw(tex, getWindowBounds());
-
-			}
+			float my=max(0.0f,min(1.0f,mouseY));
+			int i=(texs.size()-1)*my;
+			auto tex=ordered[i];
+			tex.bind();
+			//tex.setMagFilter(GL_NEAREST);
+			gl::draw(tex, getWindowBounds());
 		});
 		cfg1::print();
 		sw::endFrame();
