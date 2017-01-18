@@ -113,7 +113,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AppBasic.cpp" />
     <ClCompile Include="cfg1.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainfunc_impl.cpp" />
@@ -130,7 +129,6 @@
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AppBasic.h" />
     <ClInclude Include="cfg1.h" />
     <ClInclude Include="gpgpu.h" />
     <ClInclude Include="gpuBlur2_3.h" />
