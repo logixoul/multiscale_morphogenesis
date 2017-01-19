@@ -163,13 +163,11 @@ struct SApp : AppBasic {
 			texs[i] = gtex(scales[i]);
 			auto& thisScale = scales[i];
 			auto& thisOrigScale = origScales[i];
-			auto transformed = keys['0']?thisScale:func(thisScale);
+			auto transformed = func(thisScale);
 			auto diff = ::map(transformed, [&](Vec2i p) { return transformed(p) - thisOrigScale(p); });
 			forxy(diff) {
 				float w = 1.0f-pow(i/float(scales.size()-1), 10.0f);
 				w = max(0.0f, min(1.0f, w));
-				//int limit=max(0.0f, min(1.0f, mouseY)) * 10;
-				//if(i <= limit) w=0.0f;
 				diff(p) *= w;
 			}
 			if(i == lastLevel)
@@ -183,7 +181,6 @@ struct SApp : AppBasic {
 			forxy(nextScaleUp) {
 				nextScaleUp(p) += upscaledDiff(p);
 			}
-			//cout <<"Finished loop, scaleCount is "<<scales.size()<<endl;
 		}
 		return scales[lastLevel];
 	}
