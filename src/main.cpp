@@ -18,7 +18,6 @@ int scale=4;
 int sx=wsx/scale;
 int sy=wsy/scale;
 Array2D<float> img(sx,sy);
-auto imgadd_accum = Array2D<float>(sx,sy);
 bool pause2=false;
 bool keys[256];
 float mouseX, mouseY;
@@ -54,9 +53,6 @@ struct SApp : AppBasic {
 	void reset() {
 		forxy(img) {
 			img(p)=ci::randFloat();
-		}
-		forxy(imgadd_accum) {
-			imgadd_accum(p)=0.0f;
 		}
 	}
 	void keyUp(KeyEvent e)
@@ -119,11 +115,7 @@ struct SApp : AppBasic {
 		
 		sw::timeit("imgadd calculations", [&]() {
 			forxy(img) {
-				imgadd_accum(p)+=imgadd(p);
-				imgadd_accum(p)*=.9f;
-			}
-			forxy(img) {
-				img(p)+=imgadd_accum(p);
+				img(p)+=imgadd(p);
 			}
 		});
 		img=::to01(img);
