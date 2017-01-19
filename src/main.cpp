@@ -22,6 +22,7 @@ bool pause2=false;
 bool keys[256];
 float mouseX, mouseY;
 std::map<int, gl::Texture> texs;
+auto imgadd_accum = Array2D<float>(sx,sy);
 
 struct SApp : AppBasic {
 	void setup()
@@ -54,6 +55,9 @@ struct SApp : AppBasic {
 		forxy(img) {
 			img(p)=ci::randFloat();
 		}
+		forxy(imgadd_accum) {
+			imgadd_accum(p)=0.0f;
+		}
 	}
 	void keyUp(KeyEvent e)
 	{
@@ -74,7 +78,7 @@ struct SApp : AppBasic {
 		auto perpLeft = [&](Vec2f v) { return Vec2f(-v.y, v.x); }; //correct
 		auto perpRight = [&](Vec2f v) { return -perpLeft(v); }; //correct
 		auto guidance = Array2D<float>(img.w, img.h);
-		//guidance = img;
+		guidance = img;
 		sw::timeit("guidance blurs", [&]() {
 			/*float sumw=0.0f;
 			for(int r = 0; r < 30; r+=9) {
@@ -87,7 +91,7 @@ struct SApp : AppBasic {
 			}
 			forxy(guidance)
 				guidance(p) /= sumw;*/
-			guidance = gaussianBlur(img, 6);
+			//guidance = gaussianBlur(img, 6);
 		});
 		auto imgadd=Array2D<float>(img.w,img.h);
 		Array2D<Vec2f> gradients;
@@ -114,6 +118,13 @@ struct SApp : AppBasic {
 		});
 		
 		sw::timeit("imgadd calculations", [&]() {
+			/*forxy(img) {
+				imgadd_accum(p)+=imgadd(p);
+				imgadd_accum(p)*=.9f;
+			}
+			forxy(img) {
+				img(p)+=imgadd_accum(p);
+			}*/
 			forxy(img) {
 				img(p)+=imgadd(p);
 			}
@@ -189,8 +200,8 @@ struct SApp : AppBasic {
 		if(pause2) {
 			return;
 		}
-		//img = multiscaleApply(img, update_1_scale);
-		img = update_1_scale(img);
+		img = multiscaleApply(img, update_1_scale);
+		//img = update_1_scale(img);
 	}
 	void draw()
 	{
