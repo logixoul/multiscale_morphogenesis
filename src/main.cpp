@@ -65,7 +65,7 @@ struct SApp : AppBasic {
 	}
 	
 	typedef Array2D<float> Img;
-
+	
 	static Img update_1_scale(Img aImg)
 	{
 		auto img = aImg.clone();

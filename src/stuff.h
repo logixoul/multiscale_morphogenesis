@@ -1,16 +1,6 @@
 #pragma once
 #include "precompiled.h"
-namespace gl=ci::gl;
-
-template<class T>
-class FETCHFUNCTRAITS {
-public:
-	typedef T&(*type)(Array2D<T>&,int,int);
-	template<class T>
-	static T& defaultImpl(Array2D<T>& src, int x, int y) {
-		return get_clamped(src, x, y);
-	}
-};
+#include "util.h"
 
 const GLenum hdrFormat = GL_RGBA16F;
 inline void gotoxy(int x, int y) { 
@@ -761,17 +751,17 @@ inline void checkGLError(string place)
 template<class T>
 Array2D<T> gettexdata(gl::Texture tex, GLenum format, GLenum type, ci::Area area) {
 	Array2D<T> data(area.getWidth(), area.getHeight());
-	CHECK_GL_ERROR();
 	tex.bind();
 	//glGetTexImage(GL_TEXTURE_2D, 0, format, type, data.data);
-	CHECK_GL_ERROR();
 	beginRTT(tex);
-	CHECK_GL_ERROR();
 	glReadPixels(area.x1, area.y1, area.getWidth(), area.getHeight(), format, type, data.data);
-	CHECK_GL_ERROR();
 	endRTT();
-	CHECK_GL_ERROR();
 	//glGetTexS
+	GLenum errCode;
+	if ((errCode = glGetError()) != GL_NO_ERROR) 
+	{
+		cout<<"ERROR"<<errCode<<endl;
+	}
 	return data;
 }
 inline float sq(float f) {
@@ -794,56 +784,11 @@ inline vector<float> getGaussianKernel(int ksize) { // ksize must be odd
 	}
 	return result;
 }
-/*template<class T>
-Array2D<T> gaussianBlur1D(Array2D<T> src, int ksize, int dim, vector<float> const& kernel) { // ksize must be odd
-	int r = ksize / 2;
-	
-	int w = dim == 0 ? src.w : src.h,
-	int h = dim == 0 ? src.h : src.w;
-	auto blurPart = [&](int x0, int x1) {
-		for(int y = 0; y < h; y++)
-		{
-			for(int x = x0; x < x1; x++)
-			{
-				T sum = zero;
-				for(int i = -r; i <= r; i++)
-				{
-					if(x + i < 0 || x + i >= w)
-						continue;
-					sum += kernel[i + r] * src(x + i, y);
-				}
-				dst1(y, x) = sum;
-			}
-		}
-	};
-
-	blurPart(0, r);
-	blurPart(w-r, w);
-	for(int y = 0; y < h; y++)
-	{
-		for(int x = r; x < w-r-1; x++)
-		{
-			T sum = zero;
-			for(int i = -r; i <= r; i++)
-			{
-				sum += kernel[i + r] * src(x + i, y);
-			}
-			dst1(x, y) = sum;
-		}
-	}
-}*/
-
-/*template<class T> void foo(T) {}
-template<class T> struct Traits { typedef void(*type)(T); static void default_(T) {} };
-template<class T, void(*Fetch)(T)=foo> void test() {}
-void runMain() {test<int >(); }*/
-
 template<class T,class FetchFunc>
 Array2D<T> gaussianBlur(Array2D<T> src, int ksize) { // ksize must be odd. fastpath is for r%3==0.
 	int r = ksize / 2;
 	if(r % 3 == 0)
 	{
-		//cout << "BLUR fastpath" << endl;
 		auto blurred = src;
 		for(int i = 0; i < 3; i++)
 		{
@@ -851,7 +796,6 @@ Array2D<T> gaussianBlur(Array2D<T> src, int ksize) { // ksize must be odd. fastp
 		}
 		return blurred;
 	}
-	//cout << "BLUR slowpath" << endl;
 
 	auto kernel = getGaussianKernel(ksize);
 	T zero=::zero<T>();
@@ -962,6 +906,12 @@ inline vector<Array2D<float> > split(Array2D<Vec3f> arr) {
 	result.push_back(b);
 	return result;
 }
+inline void setWrapBlack(gl::Texture tex) {
+	tex.bind();
+	float black[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
+	tex.setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
+}
 
 inline Array2D<Vec3f> merge(vector<Array2D<float> > channels) {
 	Array2D<float>& r = channels[0];
@@ -974,49 +924,20 @@ inline Array2D<Vec3f> merge(vector<Array2D<float> > channels) {
 	return result;
 }
 
-inline Array2D<Vec3f> resize(Array2D<Vec3f> src, Vec2i dstSize, const ci::FilterBase &filter)
-{
-	ci::SurfaceT<float> tmpSurface(
-		(float*)src.data, src.w, src.h, /*rowBytes*/sizeof(Vec3f) * src.w, ci::SurfaceChannelOrder::RGB);
-	auto resizedSurface = ci::ip::resizeCopy(tmpSurface, tmpSurface.getBounds(), dstSize, filter);
-	Array2D<Vec3f> resultArray = resizedSurface;
-	return resultArray;
+inline Array2D<float> div(Array2D<Vec2f> a) {
+	return ::map(a, [&](Vec2i p) -> float {
+		auto dGx_dx = (a.wr(p.x+1,p.y).x-a.wr(p.x-1,p.y).x) / 2.0f;
+		auto dGy_dy = (a.wr(p.x,p.y+1).y-a.wr(p.x,p.y-1).y) / 2.0f;
+		return dGx_dx + dGy_dy;
+	});
 }
 
-inline Array2D<float> resize(Array2D<float> src, Vec2i dstSize, const ci::FilterBase &filter)
-{
-#if 0
-	ci::ChannelT<float> tmpSurface(
-		(float*)src.data, src.w, src.h, /*rowBytes*/sizeof(float) * src.w, ci::SurfaceChannelOrder::ABGR);
-	auto resizedSurface = ci::ip::resizeCopy(tmpSurface, tmpSurface.getBounds(), dstSize, filter);
-	Array2D<float> resultArray = resizedSurface;
-	return resultArray;
-#endif
-	auto srcRgb = ::merge(list_of(src)(src)(src));
-	auto resized = resize(srcRgb, dstSize, filter);
-	return ::split(resized)[0];
-}
+class FileCache {
+public:
+	static string get(string filename);
+private:
+	static std::map<string,string> db;
+};
 
-#undef FETCHARG
-
-template<class T>
-Array2D<T> longTailBlur(Array2D<T> src)
-{
-	auto state = src.clone();
-	float sumw=1.0f;
-	for(int i = 0; i < 10; i++)
-	{
-		auto srcb = gaussianBlur(src, i*2+1);
-		sumw*=4.0f;
-		sumw+=1.0f;
-		forxy(state) {
-			state(p) *= 4.0f;
-			state(p) += srcb(p);
-		}
-	}
-	forxy(state) {
-		state(p) /= sumw;
-	}
-	return state;
-}
-	
+Array2D<Vec3f> resize(Array2D<Vec3f> src, Vec2i dstSize, const ci::FilterBase &filter);
+Array2D<float> resize(Array2D<float> src, Vec2i dstSize, const ci::FilterBase &filter);
