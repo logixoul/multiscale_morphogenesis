@@ -99,9 +99,9 @@ struct SApp : AppBasic {
 			gradients = get_gradients(guidance);
 		});
 		sw::timeit("calc velocities [the rest]", [&]() {
-			for(int x = 2; x < img.w-2; x++)
+			for(int x = 0; x < img.w; x++)
 			{
-				for(int y = 2; y < img.h-2; y++)
+				for(int y = 0; y < img.h; y++)
 				{
 					Vec2f p = Vec2f(x,y);
 					Vec2f grad = gradients(x, y).safeNormalized();
@@ -109,8 +109,8 @@ struct SApp : AppBasic {
 					Vec2f gradP = perpLeft(grad);
 					
 					float val = guidance(x, y);
-					float valLeft = getBilinear<float, WrapModes::NoWrap>(guidance, p+gradP);
-					float valRight = getBilinear<float, WrapModes::NoWrap>(guidance, p-gradP);
+					float valLeft = getBilinear<float, WrapModes::GetWrapped>(guidance, p+gradP);
+					float valRight = getBilinear<float, WrapModes::GetWrapped>(guidance, p-gradP);
 					float add = (val - (valLeft + valRight) * .5f);
 					imgadd(x, y) = add * abc;
 				}
@@ -155,9 +155,14 @@ struct SApp : AppBasic {
 		//mm(img, "img");
 		return img;
 	}
-	/*Img resize(Img src) {
-		//auto half = ::zeros_
-	}*/
+	Img pyrDown(Img src) {
+		auto srcB = gaussianBlur(src, 3);
+		auto halfSized = Array2D<float>(src.w/2, src.h/2);
+		forxy(halfSized) {
+			halfSized(p) = srcB(Vec2f(p) * 2 + Vec2f::one()*.5f);
+		}
+		return halfSized;
+	}
 	//Img resize
 	Img multiscaleApply(Img src, function<Img(Img)> func) {
 		int size = min(src.w, src.h);
@@ -168,6 +173,7 @@ struct SApp : AppBasic {
 		{
 			scales.push_back(state);
 			state = ::resize(state, state.Size() / 2, filter);
+			//state = pyrDown(state);
 			size /= 2;
 		}
 		vector<Img> origScales=scales;
@@ -179,9 +185,9 @@ struct SApp : AppBasic {
 			auto& thisOrigScale = origScales[i];
 			auto transformed = func(thisScale);
 			auto diff = ::map(transformed, [&](Vec2i p) { return transformed(p) - thisOrigScale(p); });
+			float w = 1.0f-pow(i/float(scales.size()-1), 10.0f);
+			w = max(0.0f, min(1.0f, w));
 			forxy(diff) {
-				float w = 1.0f-pow(i/float(scales.size()-1), 10.0f);
-				w = max(0.0f, min(1.0f, w));
 				diff(p) *= w;
 			}
 			if(i == lastLevel)
