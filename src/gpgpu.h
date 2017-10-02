@@ -14,6 +14,17 @@ inline gl::Texture get_gradients_tex(gl::Texture src) {
 		"	_out.xy=vec2(dx,dy);"
 		"}");
 }
+inline gl::Texture gradientForwardTex(gl::Texture src) {
+	return shade(list_of(src),
+		"void shade(){"
+		"	float srcHere=fetch1(tex,tc);"
+		"	float srcR=fetch1(tex,tc+tsize*vec2(1.0,0.0));"
+		"	float srcB=fetch1(tex,tc+tsize*vec2(0.0,1.0));"
+		"	float dx=(srcR-srcHere)/2.0;"
+		"	float dy=(srcB-srcHere)/2.0;"
+		"	_out.xy=vec2(dx,dy);"
+		"}");
+}
 inline gl::Texture baseshade2(vector<gl::Texture> texv, string src, ShadeOpts const& opts = ShadeOpts(), string lib = "")
 {
 	return shade(texv, (lib + "\n" + "void shade() {" + src + "}").c_str(), opts);
@@ -42,6 +53,18 @@ inline gl::Texture shade2(
 {
 	return baseshade2(list_of(tex)(tex2)(tex3)(tex4), src, opts, lib);
 }
+inline gl::Texture shade2(
+	gl::Texture tex, gl::Texture tex2, gl::Texture tex3, gl::Texture tex4, gl::Texture tex5,
+	string src, ShadeOpts const& opts = ShadeOpts(), string lib = "")
+{
+	return baseshade2(list_of(tex)(tex2)(tex3)(tex4)(tex5), src, opts, lib);
+}
+inline gl::Texture shade2(
+	gl::Texture tex, gl::Texture tex2, gl::Texture tex3, gl::Texture tex4, gl::Texture tex5, gl::Texture tex6,
+	string src, ShadeOpts const& opts = ShadeOpts(), string lib = "")
+{
+	return baseshade2(list_of(tex)(tex2)(tex3)(tex4)(tex5)(tex6), src, opts, lib);
+}
 inline gl::Texture gauss3tex(gl::Texture src) {
 	auto state = shade(list_of(src), "void shade() {"
 		"vec3 sum = vec3(0.0);"
@@ -65,6 +88,19 @@ inline gl::Texture gauss3tex(gl::Texture src) {
 		"if(tc2.y + 1.0 > texSize.y - 1.0 - eps)"
 		"	sum += fetch3(tex, tc2 + tsize * vec2(0.0, 1.0));"
 		"_out = sum;");
+	return state;
+}
+
+inline gl::Texture get_laplace_tex(gl::Texture src) {
+	auto state = shade(list_of(src), "void shade() {"
+		"vec3 sum = vec3(0.0);"
+		"sum += fetch3(tex, tc + tsize * vec2(-1.0, 0.0)) * -1.0;"
+		"sum += fetch3(tex, tc + tsize * vec2(0.0, -1.0)) * -1.0;"
+		"sum += fetch3(tex, tc + tsize * vec2(0.0, +1.0)) * -1.0;"
+		"sum += fetch3(tex, tc + tsize * vec2(+1.0, 0.0)) * -1.0;"
+		"sum += fetch3(tex, tc + tsize * vec2(0.0, 0.0)) * 4.0;"
+		"_out = sum;"
+		"}");
 	return state;
 }
 

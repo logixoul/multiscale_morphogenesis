@@ -14,7 +14,7 @@ typedef WrapModes::GetWrapped WrapMode;
 
 //int wsx=800, wsy=800.0*(800.0/1280.0);
 int wsx=512, wsy=512;
-int scale=4;
+int scale=2;
 int sx=wsx/scale;
 int sy=wsy/scale;
 Array2D<float> img(sx,sy);
@@ -155,6 +155,9 @@ struct SApp : AppBasic {
 		//mm(img, "img");
 		return img;
 	}
+	/*Img resize(Img src) {
+		//auto half = ::zeros_
+	}*/
 	//Img resize
 	Img multiscaleApply(Img src, function<Img(Img)> func) {
 		int size = min(src.w, src.h);

@@ -1,6 +1,7 @@
 #pragma once
 #include "precompiled.h"
 #include "util.h"
+#include "my_console.h"
 
 const GLenum hdrFormat = GL_RGBA16F;
 inline void gotoxy(int x, int y) { 
@@ -24,27 +25,6 @@ inline void clearconsole() {
     );
     SetConsoleCursorPosition(console, topLeft);
 }
-////////////////
-#if 0
-template<class Func>
-struct ToBind
-{
-	/*function<Func> f;
-	ToBind(Func f) : f(f){
-	}*/
-};
-
-template<class Func>
-ToBind<Func> toBind(Func func) {
-	throw 0;
-	//return ToBind<Func>(func);
-}
-
-void test()
-{
-	toBind(powf);
-}
-#endif
 
 template<class F>
 struct Transformed {
@@ -423,6 +403,32 @@ void aaPoint_i(Array2D<T>& dst, int x, int y, T value)
 {
 	dst.wr(x, y) += value;
 }
+/// BEGIN CODE FOR BACKWARD COMPATIBILITY
+
+	template<class T>
+	void aaPoint_wrapZeros(Array2D<T>& dst, Vec2f p, T value)
+	{
+		aaPoint_wrapZeros(dst, p.x, p.y, value);
+	}
+	template<class T>
+	void aaPoint_wrapZeros(Array2D<T>& dst, float x, float y, T value)
+	{
+		int ix = x, iy = y;
+		float fx = ix, fy = iy;
+		if(x < 0.0f && fx != x) { fx--; ix--; }
+		if(y < 0.0f && fy != y) { fy--; iy--; }
+		float fractx = x - fx;
+		float fracty = y - fy;
+		float fractx1 = 1.0 - fractx;
+		float fracty1 = 1.0 - fracty;
+		get_wrapZeros(dst, ix, iy) += (fractx1 * fracty1) * value;
+		get_wrapZeros(dst, ix, iy+1) += (fractx1 * fracty) * value;
+		get_wrapZeros(dst, ix+1, iy) += (fractx * fracty1) * value;
+		get_wrapZeros(dst, ix+1, iy+1) += (fractx * fracty) * value;
+	}
+
+/// END CODE FOR BACKWARD COMPATIBILITY
+
 template<class T, class FetchFunc>
 void aaPoint(Array2D<T>& dst, Vec2f p, T value)
 {
@@ -627,11 +633,12 @@ Vec2f gradient_i2(Array2D<T> src, Vec2i p)
 }
 
 inline void mm(Array2D<float> arr, string desc="") {
+	std::stringstream prepend;
 	if(desc!="") {
-		cout << "[" << desc << "] ";
+		 prepend << "[" << desc << "] ";
 	}
-	cout<<"min: " << *std::min_element(arr.begin(),arr.end()) << ", ";
-	cout<<"max: " << *std::max_element(arr.begin(),arr.end()) << endl;
+	qDebug()<<prepend.str()<<"min: " << *std::min_element(arr.begin(),arr.end()) << ", "
+		<<"max: " << *std::max_element(arr.begin(),arr.end());
 }
 //get_wrapZeros
 template<class T>
@@ -739,10 +746,11 @@ inline void checkGLError(string place)
 	GLenum errCode;
 	if ((errCode = glGetError()) != GL_NO_ERROR) 
 	{
-		cout<<"GL error "<<hex<<errCode<<dec<< " at " << place << endl;
+		qDebug()<<"GL error "<<hex<<errCode<<dec<< " at " << place;
 	}
-	else
-		cout << "NO error at " << place << endl;
+	else {
+		qDebug() << "NO error at " << place;
+	}
 }
 #define MY_STRINGIZE_DETAIL(x) #x
 #define MY_STRINGIZE(x) MY_STRINGIZE_DETAIL(x)
@@ -760,44 +768,25 @@ Array2D<T> gettexdata(gl::Texture tex, GLenum format, GLenum type, ci::Area area
 	GLenum errCode;
 	if ((errCode = glGetError()) != GL_NO_ERROR) 
 	{
-		cout<<"ERROR"<<errCode<<endl;
+		qDebug() <<"ERROR"<<errCode;
 	}
 	return data;
 }
-inline float sq(float f) {
-	return f * f;
-}
 
-inline vector<float> getGaussianKernel(int ksize) { // ksize must be odd
-	float sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8;
-	vector<float> result;
-	int r=ksize/2;
-	float sum=0.0f;
-	for(int i=-r;i<=r;i++) {
-		float exponent = -(i*i/sq(2*sigma));
-		float val = exp(exponent);
-		sum += val;
-		result.push_back(val);
-	}
-	for(int i=0; i<result.size(); i++) {
-		result[i] /= sum;
-	}
-	return result;
-}
+float sq(float f);
+
+vector<float> getGaussianKernel(int ksize, float sigma); // ksize must be odd
+
+float sigmaFromKsize(float ksize);
+
+float ksizeFromSigma(float sigma);
+
+// KS means it has ksize and sigma args
 template<class T,class FetchFunc>
-Array2D<T> gaussianBlur(Array2D<T> src, int ksize) { // ksize must be odd. fastpath is for r%3==0.
+Array2D<T> separableConvolve(Array2D<T> src, vector<float>& kernel) {
+	int ksize = kernel.size();
 	int r = ksize / 2;
-	if(r % 3 == 0)
-	{
-		auto blurred = src;
-		for(int i = 0; i < 3; i++)
-		{
-			blurred = blur<T, FetchFunc>(blurred, r / 3, ::zero<T>());
-		}
-		return blurred;
-	}
-
-	auto kernel = getGaussianKernel(ksize);
+	
 	T zero=::zero<T>();
 	Array2D<T> dst1(src.w, src.h);
 	Array2D<T> dst2(src.w, src.h);
@@ -871,6 +860,12 @@ Array2D<T> gaussianBlur(Array2D<T> src, int ksize) { // ksize must be odd. fastp
 	}
 	return dst2;
 }
+// one-arg version for backward compatibility
+template<class T,class FetchFunc>
+Array2D<T> gaussianBlur(Array2D<T> src, int ksize) { // ksize must be odd.
+	auto kernel = getGaussianKernel(ksize, sigmaFromKsize(ksize));
+	return separableConvolve<T, FetchFunc>(src, kernel);
+}
 template<class T>
 Array2D<T> gaussianBlur(Array2D<T> src, int ksize) {
 	return gaussianBlur<T, WrapModes::DefaultImpl>(src, ksize);
@@ -887,7 +882,7 @@ struct denormal_check {
 		}
 	}
 	static void end_frame() {
-		cout << "denormals detected: " << num << endl;
+		qDebug() << "denormals detected: " << num;
 	}
 };
 
@@ -941,3 +936,21 @@ private:
 
 Array2D<Vec3f> resize(Array2D<Vec3f> src, Vec2i dstSize, const ci::FilterBase &filter);
 Array2D<float> resize(Array2D<float> src, Vec2i dstSize, const ci::FilterBase &filter);
+
+
+inline Array2D<Vec2f> gradientForward(Array2D<float> a) {
+	return ::map(a, [&](Vec2i p) -> Vec2f {
+		return Vec2f(
+			(a.wr(p.x + 1, p.y) - a.wr(p.x, p.y)) / 1.0f,
+			(a.wr(p.x, p.y + 1) - a.wr(p.x, p.y)) / 1.0f
+		);
+	});
+}
+
+inline Array2D<float> divBackward(Array2D<Vec2f> a) {
+	return ::map(a, [&](Vec2i p) -> float {
+		auto dGx_dx = (a.wr(p.x, p.y).x - a.wr(p.x - 1, p.y).x);
+		auto dGy_dy = (a.wr(p.x, p.y).y - a.wr(p.x, p.y - 1).y);
+		return dGx_dx + dGy_dy;
+	});
+}

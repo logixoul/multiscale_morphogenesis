@@ -6,10 +6,6 @@
 inline string esc_macro_helper(string s) { return s.substr(1, s.length()-2); }
 #define ESC_(s) esc_macro_helper(string(#s))
 
-using namespace ci;
-
-using namespace std;
-
 typedef unsigned char byte;
 
 struct XSequential { template<class TArray, class TCoord> static int offset(TArray const& array, TCoord x, TCoord y)
@@ -31,11 +27,9 @@ public:
 
 	ArrayDeleter(ArrayDeleter const& other)
 	{
-		//*this = other;
 		arrayPtr = other.arrayPtr;
 		refcountPtr = other.refcountPtr;
 		(*refcountPtr)++;
-
 	}
 
 	ArrayDeleter const& operator=(ArrayDeleter const& other)
@@ -61,8 +55,8 @@ private:
 		if(*refcountPtr == 0)
 		{
 			delete refcountPtr;
-			delete[] arrayPtr;
-			//fftwf_free(arrayPtr);
+			//delete[] array;
+			fftwf_free(arrayPtr);
 		}
 	}
 	
@@ -101,6 +95,12 @@ struct Array2D
 	Array2D(ci::SurfaceT<TSrc> const& surface) : deleter(Init(surface.getWidth(), surface.getHeight()))
 	{
 		::copyCvtData(surface, *this);
+	}
+
+	template<class TSrc>
+	Array2D(cv::Mat_<TSrc> const& mat) : deleter(nullptr)
+	{
+		Init(mat.cols, mat.rows, (T*)mat.data);
 	}
 
 	T* begin() { return data; }
@@ -151,13 +151,16 @@ private:
 		std::fill(begin(), end(), value);
 	}
 	T* Init(int w, int h) {
-		// so we can use fftw new-array execute functions
-		//data = (T*)fftwf_malloc(w * h * sizeof(T)); // data = new T[w * h]
-		data=new T[w*h];
+		// fftwf_malloc so we can use "new-array execute" fftw functions
+		auto data = (T*)fftwf_malloc(w * h * sizeof(T)); // data = new T[w * h]
+		Init(w, h, data);
+		return data;
+	}
+	void Init(int w, int h, T* data) {
+		this->data = data;
 		area = w * h;
 		this->w = w;
 		this->h = h;
-		return data;
 	}
 };
 
@@ -258,3 +261,43 @@ namespace Stopwatch
 #define FOR(variable, from, to) for(int variable = from; variable <= to; variable++)
 
 void createConsole();
+
+template<class T>
+struct ListOf
+{
+	vector<T> data;
+	ListOf(T t)
+	{
+		data.push_back(t);
+	}
+	ListOf<T>& operator()(T t)
+	{
+		data.push_back(t);
+		return *this;
+	}
+	operator vector<T>()
+	{
+		return data;
+	}
+};
+
+template<class T>
+ListOf<T> list_of(T t)
+{
+	return ListOf<T>(t);
+}
+
+template<class T>
+Array2D<T> empty_like(Array2D<T> a) {
+	return Array2D<T>(a.Size(), nofill());
+}
+
+template<class T>
+Array2D<T> ones_like(Array2D<T> a) {
+	return Array2D<T>(a.Size(), 1.0f);
+}
+
+template<class T>
+Array2D<T> zeros_like(Array2D<T> a) {
+	return Array2D<T>(a.Size(), ::zero<T>());
+}
