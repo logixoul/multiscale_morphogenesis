@@ -461,12 +461,12 @@ void aaPoint(Array2D<T>& dst, Vec2f p, T value)
 	aaPoint<T, WrapModes::DefaultImpl>(dst, p, value);
 }
 template<class T, class FetchFunc>
-T getBilinear(Array2D<T> src, Vec2f p)
+T getBilinear(Array2D<T>& src, Vec2f p)
 {
 	return getBilinear<T, FetchFunc>(src, p.x, p.y);
 }
 template<class T, class FetchFunc>
-T getBilinear(Array2D<T> src, float x, float y)
+T getBilinear(Array2D<T>& src, float x, float y)
 {
 	int ix = x, iy = y;
 	float fx = ix, fy = iy;
@@ -480,12 +480,12 @@ T getBilinear(Array2D<T> src, float x, float y)
 		fracty);
 }
 template<class T>
-T getBilinear(Array2D<T> src, float x, float y)
+T getBilinear(Array2D<T>& src, float x, float y)
 {
 	return getBilinear<T, WrapModes::DefaultImpl>(src, x, y);
 }
 template<class T>
-T getBilinear(Array2D<T> src, Vec2f p)
+T getBilinear(Array2D<T>& src, Vec2f p)
 {
 	return getBilinear<T, WrapModes::DefaultImpl>(src, p);
 }
