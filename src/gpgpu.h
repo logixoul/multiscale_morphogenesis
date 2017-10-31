@@ -12,7 +12,9 @@ inline gl::Texture get_gradients_tex(gl::Texture src) {
 		"	float dx=(srcR-srcL)/2.0;"
 		"	float dy=(srcB-srcT)/2.0;"
 		"	_out.xy=vec2(dx,dy);"
-		"}");
+		"}",
+		ShadeOpts().ifmt(GL_RG16F)
+		);
 }
 inline gl::Texture gradientForwardTex(gl::Texture src) {
 	return shade(list_of(src),
@@ -81,13 +83,6 @@ inline gl::Texture gauss3tex(gl::Texture src) {
 		"sum += fetch3(tex, tc + tsize * vec2(+1.0, +1.0)) / 16.0;"
 		"_out = sum;"
 		"}");
-	state = shade2(state,
-		"vec2 tc2 = tc * texSize;"
-		"float eps=.1;"
-		"vec3 sum=fetch3();"
-		"if(tc2.y + 1.0 > texSize.y - 1.0 - eps)"
-		"	sum += fetch3(tex, tc2 + tsize * vec2(0.0, 1.0));"
-		"_out = sum;");
 	return state;
 }
 

@@ -121,7 +121,6 @@
     <ClCompile Include="hdrwrite.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainfunc_impl.cpp" />
-    <ClCompile Include="my_console.cpp" />
     <ClCompile Include="PerlinCalculator2D.cpp" />
     <ClCompile Include="precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -129,8 +128,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="qdebug.cpp" />
     <ClCompile Include="shade.cpp" />
     <ClCompile Include="simplexnoise.cpp" />
+    <ClCompile Include="stefanfw.cpp" />
     <ClCompile Include="stuff.cpp" />
     <ClCompile Include="sw.cpp" />
     <ClCompile Include="util.cpp" />
@@ -145,11 +146,12 @@
     <ClInclude Include="gpuBlur2_4.h" />
     <ClInclude Include="hdrwrite.h" />
     <ClInclude Include="mainfunc_impl.h" />
-    <ClInclude Include="my_console.h" />
     <ClInclude Include="PerlinCalculator2D.h" />
     <ClInclude Include="precompiled.h" />
+    <ClInclude Include="qdebug.h" />
     <ClInclude Include="shade.h" />
     <ClInclude Include="simplexnoise.h" />
+    <ClInclude Include="stefanfw.h" />
     <ClInclude Include="stuff.h" />
     <ClInclude Include="sw.h" />
     <ClInclude Include="util.h" />

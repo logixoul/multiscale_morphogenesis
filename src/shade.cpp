@@ -1,7 +1,7 @@
 #include "precompiled.h"
 #include "shade.h"
 #include "util.h"
-#include "my_console.h"
+#include "qdebug.h"
 
 void beginRTT(gl::Texture fbotex)
 {

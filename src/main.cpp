@@ -6,9 +6,9 @@
 #include "gpgpu.h"
 #include "gpuBlur2_3.h"
 #include "cfg1.h"
-#include "my_console.h"
 #include "sw.h"
 #include "mainfunc_impl.h"
+#include "stefanfw.h"
 
 typedef WrapModes::GetWrapped WrapMode;
 
@@ -21,8 +21,6 @@ int sx=wsx/scale;
 int sy=wsy/scale;
 Array2D<float> img(sx,sy);
 bool pause2=false;
-bool keys[256];
-float mouseX, mouseY;
 std::map<int, gl::Texture> texs;
 auto imgadd_accum = Array2D<float>(sx,sy);
 
@@ -50,12 +48,15 @@ struct SApp : AppBasic {
 		glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
 		glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
 	}
-	void mouseDown(MouseEvent e)
+	void update()
 	{
+		stefanfw::beginFrame();
+		stefanUpdate();
+		stefanDraw();
+		stefanfw::endFrame();
 	}
 	void keyDown(KeyEvent e)
 	{
-		keys[e.getChar()] = true;
 		if(keys['p'] || keys['2'])
 		{
 			pause2 = !pause2;
@@ -72,10 +73,6 @@ struct SApp : AppBasic {
 		forxy(imgadd_accum) {
 			imgadd_accum(p)=0.0f;
 		}
-	}
-	void keyUp(KeyEvent e)
-	{
-		keys[e.getChar()] = false;
 	}
 	
 	typedef Array2D<float> Img;
@@ -219,23 +216,16 @@ struct SApp : AppBasic {
 		return scales[lastLevel];
 	}
 
-	void update_() {
+	void stefanUpdate() {
 		if(pause2) {
 			return;
 		}
 		img = multiscaleApply(img, update_1_scale);
 		//img = update_1_scale(img);
 	}
-	void draw()
+	void stefanDraw()
 	{
-		denormal_check::begin_frame();
-		mouseX = getMousePos().x / (float)wsx;
-		mouseY = getMousePos().y / (float)wsy;
-		
-		my_console::beginFrame();
-		sw::beginFrame();
 		gl::clear(Color(0, 0, 0));
-		update_();
 		cout <<"frame# "<<getElapsedFrames()<<endl;
 		sw::timeit("draw", [&]() {
 			if(1) {
@@ -257,11 +247,6 @@ struct SApp : AppBasic {
 				gl::draw(tex, getWindowBounds());
 			}
 		});
-		cfg1::print();
-		sw::endFrame();
-		my_console::endFrame();
-
-		denormal_check::end_frame();
 	}
 };
 

@@ -70,3 +70,13 @@ float ksizeFromSigma(float sigma) {
 		ksize++;
 	return ksize;
 }
+
+void disableGLClamps() {
+	glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
+	glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
+	glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
+}
+
+void enableDenormalFlushToZero() {
+	_controlfp(_DN_FLUSH, _MCW_DN);
+}

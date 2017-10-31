@@ -96,7 +96,7 @@ struct Array2D
 	{
 		::copyCvtData(surface, *this);
 	}
-
+	
 	template<class TSrc>
 	Array2D(cv::Mat_<TSrc> const& mat) : deleter(nullptr)
 	{

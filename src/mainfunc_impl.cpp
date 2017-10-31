@@ -6,7 +6,7 @@ int mainFuncImpl(cinder::app::AppBasic* app) {
 	try {
 		createConsole();
 		cinder::app::AppBasic::prepareLaunch();														
-		cinder::app::Renderer *ren = new ci::app::RendererGl;													
+		cinder::app::Renderer *ren = new RendererGl;													
 		cinder::app::AppBasic::executeLaunch( app, ren, "SApp" );										
 		cinder::app::AppBasic::cleanupLaunch();														
 	}catch(ci::gl::GlslProgCompileExc const& e) {

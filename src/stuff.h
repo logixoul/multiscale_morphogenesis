@@ -1,30 +1,9 @@
 #pragma once
 #include "precompiled.h"
 #include "util.h"
-#include "my_console.h"
+#include "qdebug.h"
 
 const GLenum hdrFormat = GL_RGBA16F;
-inline void gotoxy(int x, int y) { 
-    COORD pos = {x, y};
-    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
-    SetConsoleCursorPosition(output, pos);
-}
-inline void clearconsole() {
-    COORD topLeft  = { 0, 0 };
-    HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_SCREEN_BUFFER_INFO screen;
-    DWORD written;
-
-    GetConsoleScreenBufferInfo(console, &screen);
-    FillConsoleOutputCharacterA(
-        console, ' ', screen.dwSize.X * screen.dwSize.Y, topLeft, &written
-    );
-    FillConsoleOutputAttribute(
-        console, FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE,
-        screen.dwSize.X * screen.dwSize.Y, topLeft, &written
-    );
-    SetConsoleCursorPosition(console, topLeft);
-}
 
 template<class F>
 struct Transformed {
@@ -461,12 +440,12 @@ void aaPoint(Array2D<T>& dst, Vec2f p, T value)
 	aaPoint<T, WrapModes::DefaultImpl>(dst, p, value);
 }
 template<class T, class FetchFunc>
-T getBilinear(Array2D<T>& src, Vec2f p)
+T getBilinear(Array2D<T> src, Vec2f p)
 {
 	return getBilinear<T, FetchFunc>(src, p.x, p.y);
 }
 template<class T, class FetchFunc>
-T getBilinear(Array2D<T>& src, float x, float y)
+T getBilinear(Array2D<T> src, float x, float y)
 {
 	int ix = x, iy = y;
 	float fx = ix, fy = iy;
@@ -480,12 +459,12 @@ T getBilinear(Array2D<T>& src, float x, float y)
 		fracty);
 }
 template<class T>
-T getBilinear(Array2D<T>& src, float x, float y)
+T getBilinear(Array2D<T> src, float x, float y)
 {
 	return getBilinear<T, WrapModes::DefaultImpl>(src, x, y);
 }
 template<class T>
-T getBilinear(Array2D<T>& src, Vec2f p)
+T getBilinear(Array2D<T> src, Vec2f p)
 {
 	return getBilinear<T, WrapModes::DefaultImpl>(src, p);
 }
@@ -714,27 +693,6 @@ Array2D<Vec2f> get_gradients(Array2D<T> src)
 inline gl::Texture maketex(int w, int h, GLint internalFormat) {
 	gl::Texture::Format fmt; fmt.setInternalFormat(internalFormat); return gl::Texture(NULL, GL_RGBA, w, h, fmt);
 }
-inline gl::Texture maketex(Array2D<Vec3f> arr, GLint internalFormat) {
-	gl::Texture::Format fmt; fmt.setInternalFormat(internalFormat);
-	auto tex = gl::Texture(arr.w, arr.h, fmt);
-	tex.bind();
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, arr.w, arr.h, GL_RGB, GL_FLOAT, arr.data);
-	return tex;
-}
-inline gl::Texture maketex(Array2D<Vec2f> arr, GLint internalFormat) {
-	gl::Texture::Format fmt; fmt.setInternalFormat(internalFormat);
-	auto tex = gl::Texture(arr.w, arr.h, fmt);
-	tex.bind();
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, arr.w, arr.h, GL_RG, GL_FLOAT, arr.data);
-	return tex;
-}
-inline gl::Texture maketex(Array2D<float> arr, GLint internalFormat) {
-	gl::Texture::Format fmt; fmt.setInternalFormat(internalFormat);
-	auto tex = gl::Texture(arr.w, arr.h, fmt);
-	tex.bind();
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, arr.w, arr.h, GL_LUMINANCE, GL_FLOAT, arr.data);
-	return tex;
-}
 
 template<class T>
 Array2D<T> gettexdata(gl::Texture tex, GLenum format, GLenum type) {
@@ -954,3 +912,7 @@ inline Array2D<float> divBackward(Array2D<Vec2f> a) {
 		return dGx_dx + dGy_dy;
 	});
 }
+
+void disableGLClamps();
+
+void enableDenormalFlushToZero();
