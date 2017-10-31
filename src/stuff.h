@@ -806,7 +806,7 @@ Array2D<T> separableConvolve(Array2D<T> src, vector<float>& kernel) {
 
 		blurHorz(0, r);
 		blurHorz(h-r, h);
-		for(int y = r; y < h-r-1; y++)
+		for(int y = r; y < h-r; y++)
 		{
 			T sum = zero;
 			for(int yadd = -r; yadd <= r; yadd++)
