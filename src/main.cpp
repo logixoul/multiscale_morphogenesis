@@ -26,6 +26,18 @@ float mouseX, mouseY;
 std::map<int, gl::Texture> texs;
 auto imgadd_accum = Array2D<float>(sx,sy);
 
+template<class T>
+static Array2D<T> gauss3wr(Array2D<T> src) {
+	T zero=::zero<T>();
+	Array2D<T> dst1(src.w, src.h);
+	Array2D<T> dst2(src.w, src.h);
+	forxy(dst1)
+		dst1(p) = .25f * (2 * getWrapped(src, p.x, p.y) + getWrapped(src, p.x-1, p.y) + getWrapped(src, p.x+1, p.y));
+	forxy(dst2)
+		dst2(p) = .25f * (2 * getWrapped(dst1, p.x, p.y) + getWrapped(dst1, p.x, p.y-1) + getWrapped(dst1, p.x, p.y+1));
+	return dst2;
+}
+
 struct SApp : AppBasic {
 	void setup()
 	{
@@ -67,7 +79,6 @@ struct SApp : AppBasic {
 	}
 	
 	typedef Array2D<float> Img;
-	
 	static Img update_1_scale(Img aImg)
 	{
 		auto img = aImg.clone();
@@ -133,7 +144,8 @@ struct SApp : AppBasic {
 		});
 		img=::to01(img);
 		sw::timeit("blur", [&]() {
-			auto imgb=gaussianBlur(img, 3);
+			//auto imgb=gaussianBlur(img, 3);
+			auto imgb = gauss3wr(img);
 			//img=imgb;
 			forxy(img) {
 				img(p) = lerp(img(p), imgb(p), .8f);
@@ -221,7 +233,6 @@ struct SApp : AppBasic {
 		mouseY = getMousePos().y / (float)wsy;
 		
 		my_console::beginFrame();
-		//my_console::clr();
 		sw::beginFrame();
 		gl::clear(Color(0, 0, 0));
 		update_();
