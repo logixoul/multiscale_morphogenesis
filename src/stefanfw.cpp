@@ -11,14 +11,16 @@ namespace stefanfw {
 	EventHandler eventHandler;
 
 	void beginFrame() {
-		ci::app::AppBasic* app = ci::app::AppBasic::get();
-		::mouseX = app->getMousePos().x / (float)app->getWindowWidth();
-		::mouseY = app->getMousePos().y / (float)app->getWindowHeight();
+		ci::app::AppBase* app = ci::app::App::get();
 
 		sw::beginFrame();
 
 		wsx = app->getWindowWidth();
 		wsy = app->getWindowHeight();
+
+		auto relMousePos = app->getMousePos() - app->getWindowPos();
+		::mouseX = relMousePos.x / (float)wsx;
+		::mouseY = relMousePos.y / (float)wsy;
 	}
 
 	void endFrame() {
@@ -27,12 +29,12 @@ namespace stefanfw {
 		std::cout << std::flush;
 	}
 
+	// todo make this take ref
 	bool EventHandler::keyDown(KeyEvent e) {
 		keys[e.getChar()] = true;
 		if(e.isControlDown()&&e.getCode()!=KeyEvent::KEY_LCTRL)
 		{
 			keys2[e.getChar()] = !keys2[e.getChar()];
-			return true;
 		}
 		return true;
 	}
@@ -54,10 +56,11 @@ namespace stefanfw {
 	}
 
 	void EventHandler::subscribeToEvents(ci::app::App& app) {
-		app.registerKeyDown(this, &EventHandler::keyDown);
-		app.registerKeyUp(this, &EventHandler::keyUp);
-		app.registerMouseDown(this, &EventHandler::mouseDown);
-		app.registerMouseUp(this, &EventHandler::mouseUp);
+		auto window = app.getWindow();
+		window->getSignalKeyDown().connect([&](KeyEvent& e) { keyDown(e); });
+		window->getSignalKeyUp().connect([&](KeyEvent& e) { keyUp(e); });
+		window->getSignalMouseDown().connect([&](MouseEvent& e) { mouseDown(e); });
+		window->getSignalMouseUp().connect([&](MouseEvent& e) { mouseUp(e); });
 	}
 
 } // namespace stefanfw

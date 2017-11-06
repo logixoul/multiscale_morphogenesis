@@ -4,10 +4,9 @@
 //#include "shade.h"
 #include "stuff.h"
 #include "gpgpu.h"
-#include "gpuBlur2_3.h"
 #include "cfg1.h"
 #include "sw.h"
-#include "mainfunc_impl.h"
+
 #include "stefanfw.h"
 
 typedef WrapModes::GetWrapped WrapMode;
@@ -17,24 +16,24 @@ typedef WrapModes::GetWrapped WrapMode;
 //int wsx=800, wsy=800.0*(800.0/1280.0);
 int wsx=512, wsy=512;
 int scale=2;
-int sx=wsx/scale;
-int sy=wsy/scale;
+int sx=wsx/::scale;
+int sy=wsy/::scale;
 Array2D<float> img(sx,sy);
 bool pause2=false;
-std::map<int, gl::Texture> texs;
+std::map<int, gl::TextureRef> texs;
 auto imgadd_accum = Array2D<float>(sx,sy);
 
-struct SApp : AppBasic {
+struct SApp : App {
 	void setup()
 	{
 		createConsole();
 		reset();
-		_controlfp(_DN_FLUSH, _MCW_DN);
+		enableDenormalFlushToZero();
 		setWindowSize(wsx, wsy);
 
-		glClampColor(GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
-		glClampColor(GL_CLAMP_READ_COLOR, GL_FALSE);
-		glClampColor(GL_CLAMP_VERTEX_COLOR, GL_FALSE);
+		createConsole();
+		disableGLReadClamp();
+		stefanfw::eventHandler.subscribeToEvents(*this);
 	}
 	void update()
 	{
@@ -71,10 +70,10 @@ struct SApp : AppBasic {
 			[&]() { return true; },
 			[&]() { return niceExpRangeX(mouseX, .05f, 1000.0f); });
 
-		Array2D<Vec2f> velocity(img.w, img.h, Vec2f::zero());
+		Array2D<vec2> velocity(img.w, img.h);
 		//float abc = niceExpRangeX(mouseX, .001f, 40000.0f);
-		auto perpLeft = [&](Vec2f v) { return Vec2f(-v.y, v.x); }; //correct
-		auto perpRight = [&](Vec2f v) { return -perpLeft(v); }; //correct
+		auto perpLeft = [&](vec2 v) { return vec2(-v.y, v.x); }; //correct
+		auto perpRight = [&](vec2 v) { return -perpLeft(v); }; //correct
 		auto guidance = Array2D<float>(img.w, img.h);
 		guidance = img;
 		sw::timeit("guidance blurs", [&]() {
@@ -92,7 +91,7 @@ struct SApp : AppBasic {
 			//guidance = gaussianBlur(img, 6);
 		});
 		auto imgadd=Array2D<float>(img.w,img.h);
-		Array2D<Vec2f> gradients;
+		Array2D<vec2> gradients;
 		sw::timeit("calc velocities [get_gradients]", [&]() {
 			gradients = get_gradients(guidance);
 		});
@@ -101,10 +100,10 @@ struct SApp : AppBasic {
 			{
 				for(int y = 0; y < img.h; y++)
 				{
-					Vec2f p = Vec2f(x,y);
-					Vec2f grad = gradients(x, y).safeNormalized();
+					vec2 p = vec2(x,y);
+					vec2 grad = safeNormalized(gradients(x, y));
 
-					Vec2f gradP = perpLeft(grad);
+					vec2 gradP = perpLeft(grad);
 					
 					float val = guidance(x, y);
 					float valLeft = getBilinear<float, WrapModes::GetWrapped>(guidance, p+gradP);
@@ -157,7 +156,7 @@ struct SApp : AppBasic {
 		auto srcB = gaussianBlur(src, 3);
 		auto halfSized = Array2D<float>(src.w/2, src.h/2);
 		forxy(halfSized) {
-			halfSized(p) = srcB(Vec2f(p) * 2 + Vec2f::one()*.5f);
+			halfSized(p) = srcB(vec2(p) * 2.0f + vec2(.5f));
 		}
 		return halfSized;
 	}
@@ -182,7 +181,7 @@ struct SApp : AppBasic {
 			auto& thisScale = scales[i];
 			auto& thisOrigScale = origScales[i];
 			auto transformed = func(thisScale);
-			auto diff = ::map(transformed, [&](Vec2i p) { return transformed(p) - thisOrigScale(p); });
+			auto diff = ::map(transformed, [&](ivec2 p) { return transformed(p) - thisOrigScale(p); });
 			float w = 1.0f-pow(i/float(scales.size()-1), 10.0f);
 			w = max(0.0f, min(1.0f, w));
 			forxy(diff) {
@@ -190,7 +189,7 @@ struct SApp : AppBasic {
 			}
 			if(i == lastLevel)
 			{
-				scales[lastLevel] = ::map(transformed, [&](Vec2i p) { return thisOrigScale(p) + diff(p); });//.clone();
+				scales[lastLevel] = ::map(transformed, [&](ivec2 p) { return thisOrigScale(p) + diff(p); });//.clone();
 				break;
 			}
 			auto& nextScaleUp = scales[i-1];
@@ -217,9 +216,9 @@ struct SApp : AppBasic {
 		sw::timeit("draw", [&]() {
 			if(1) {
 				auto tex = gtex(img);
-				gl::draw(tex, getWindowBounds());
+				gl::draw(redToLuminance(tex), getWindowBounds());
 			} else {
-				vector<gl::Texture> ordered;
+				vector<gl::TextureRef> ordered;
 				do {
 					foreach(auto& pair, texs) {
 						ordered.push_back(pair.second);
@@ -229,14 +228,12 @@ struct SApp : AppBasic {
 				float my=max(0.0f,min(1.0f,mouseY));
 				int i=(texs.size()-1)*my;
 				auto tex=ordered[i];
-				tex.bind();
+				tex->bind();
 				//tex.setMagFilter(GL_NEAREST);
-				gl::draw(tex, getWindowBounds());
+				gl::draw(redToLuminance(tex), getWindowBounds());
 			}
 		});
 	}
 };
 
-int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
-	return mainFuncImpl(new SApp());
-}
+CINDER_APP(SApp, RendererGl)

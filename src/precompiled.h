@@ -4,7 +4,12 @@
 #include <string>
 #include <cinder/ip/Resize.h>
 #include <complex>
-#include <cinder/app/AppBasic.h>
+#include <Windows.h> // for AllocConsole. See if it's still needed.
+// these two are from Windows.h
+#undef min
+#undef max
+#include <cinder/app/App.h>
+#include <cinder/app/RendererGl.h>
 #include <cinder/gl/GlslProg.h>
 #include <cinder/gl/Texture.h>
 #include <cinder/gl/Fbo.h>
@@ -17,6 +22,7 @@
 #include <numeric>
 #include <tuple>
 #include <opencv2/imgproc.hpp>
+#include <thread>
 #define foreach BOOST_FOREACH
 using namespace ci;
 using namespace std;
