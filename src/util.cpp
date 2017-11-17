@@ -113,3 +113,9 @@ void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<float> dst) {
 		dst(p) = inPixel.r;
 	}
 }
+void copyCvtData(ci::ChannelT<float> const& surface, Array2D<float> dst) {
+	forxy(dst) {
+		float inPixel = surface.getValue(p);
+		dst(p) = inPixel;
+	}
+}

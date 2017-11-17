@@ -11,10 +11,11 @@
 
 typedef WrapModes::GetWrapped WrapMode;
 
-// before openMP: 18fps
+// baseline 7fps
+// now 9fps
 
 //int wsx=800, wsy=800.0*(800.0/1280.0);
-int wsx=512, wsy=512;
+int wsx=1280, wsy=720;
 int scale=2;
 int sx=wsx/::scale;
 int sy=wsy/::scale;
@@ -193,7 +194,7 @@ struct SApp : App {
 				break;
 			}
 			auto& nextScaleUp = scales[i-1];
-			texs[i] = gtex(::resize(transformed, nextScaleUp.Size(), filter));
+			//texs[i] = gtex(::resize(transformed, nextScaleUp.Size(), filter));
 			auto upscaledDiff = ::resize(diff, nextScaleUp.Size(), filter);
 			forxy(nextScaleUp) {
 				nextScaleUp(p) += upscaledDiff(p);

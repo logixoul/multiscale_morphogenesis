@@ -72,6 +72,7 @@ struct Array2D;
 void copyCvtData(ci::Surface8u const& surface, Array2D<vec3> dst);
 void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<vec3> dst);
 void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<float> dst);
+void copyCvtData(ci::ChannelT<float> const& surface, Array2D<float> dst);
 
 template<class T, class MemoryLayoutPolicy>
 struct Array2D
@@ -92,7 +93,7 @@ struct Array2D
 	Array2D() : deleter(Init(0, 0)) { }
 	
 	template<class TSrc>
-	Array2D(ci::SurfaceT<TSrc> const& surface) : deleter(Init(surface.getWidth(), surface.getHeight()))
+	Array2D(TSrc const& surface) : deleter(Init(surface.getWidth(), surface.getHeight()))
 	{
 		::copyCvtData(surface, *this);
 	}
