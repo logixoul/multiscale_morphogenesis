@@ -71,30 +71,10 @@ struct SApp : App {
 			[&]() { return true; },
 			[&]() { return niceExpRangeX(mouseX, .05f, 1000.0f); });
 
-		Array2D<vec2> velocity(img.w, img.h);
-		//float abc = niceExpRangeX(mouseX, .001f, 40000.0f);
 		auto perpLeft = [&](vec2 v) { return vec2(-v.y, v.x); }; //correct
-		auto perpRight = [&](vec2 v) { return -perpLeft(v); }; //correct
-		auto guidance = Array2D<float>(img.w, img.h);
-		guidance = img;
-		sw::timeit("guidance blurs", [&]() {
-			/*float sumw=0.0f;
-			for(int r = 0; r < 30; r+=9) {
-				auto blurred = gaussianBlur(img, r * 2 + 1);
-				//float w = r * r;
-				float w = pow(1.0f / 4.0f, float(r));
-				sumw+=w;
-				forxy(guidance)
-					guidance(p) += w * blurred(p);
-			}
-			forxy(guidance)
-				guidance(p) /= sumw;*/
-			//guidance = gaussianBlur(img, 6);
-		});
-		auto imgadd=Array2D<float>(img.w,img.h);
 		Array2D<vec2> gradients;
 		sw::timeit("calc velocities [get_gradients]", [&]() {
-			gradients = get_gradients(guidance);
+			gradients = get_gradients(img);
 		});
 		sw::timeit("calc velocities [the rest]", [&]() {
 			for(int x = 0; x < img.w; x++)
@@ -106,27 +86,15 @@ struct SApp : App {
 
 					vec2 gradP = perpLeft(grad);
 					
-					float val = guidance(x, y);
-					float valLeft = getBilinear<float, WrapModes::GetWrapped>(guidance, p+gradP);
-					float valRight = getBilinear<float, WrapModes::GetWrapped>(guidance, p-gradP);
+					float val = img(x, y);
+					float valLeft = getBilinear<float, WrapModes::GetWrapped>(img, p+gradP);
+					float valRight = getBilinear<float, WrapModes::GetWrapped>(img, p-gradP);
 					float add = (val - (valLeft + valRight) * .5f);
-					imgadd(x, y) = add * abc;
+					img(x, y) += add * abc;
 				}
 			}
 		});
 		
-		sw::timeit("imgadd calculations", [&]() {
-			/*forxy(img) {
-				imgadd_accum(p)+=imgadd(p);
-				imgadd_accum(p)*=.9f;
-			}
-			forxy(img) {
-				img(p)+=imgadd_accum(p);
-			}*/
-			forxy(img) {
-				img(p)+=imgadd(p);
-			}
-		});
 		img=::to01(img);
 		sw::timeit("blur", [&]() {
 			auto imgb=gaussianBlur(img, 3);
@@ -153,15 +121,6 @@ struct SApp : App {
 		//mm(img, "img");
 		return img;
 	}
-	Img pyrDown(Img src) {
-		auto srcB = gaussianBlur(src, 3);
-		auto halfSized = Array2D<float>(src.w/2, src.h/2);
-		forxy(halfSized) {
-			halfSized(p) = srcB(vec2(p) * 2.0f + vec2(.5f));
-		}
-		return halfSized;
-	}
-	//Img resize
 	Img multiscaleApply(Img src, function<Img(Img)> func) {
 		int size = min(src.w, src.h);
 		auto state = src.clone();
@@ -171,7 +130,6 @@ struct SApp : App {
 		{
 			scales.push_back(state);
 			state = ::resize(state, state.Size() / 2, filter);
-			//state = pyrDown(state);
 			size /= 2;
 		}
 		vector<Img> origScales=scales;
@@ -182,23 +140,38 @@ struct SApp : App {
 			auto& thisScale = scales[i];
 			auto& thisOrigScale = origScales[i];
 			auto transformed = func(thisScale);
-			auto diff = ::map(transformed, [&](ivec2 p) { return transformed(p) - thisOrigScale(p); });
+			auto diff = empty_like(transformed);
+			sw::timeit("::map", [&]() {
+#pragma omp parallel for
+				for(int i = 0; i < diff.area; i++) {
+					diff(i) = transformed(i) - thisOrigScale(i);
+				}
+			});
 			float w = 1.0f-pow(i/float(scales.size()-1), 10.0f);
 			w = max(0.0f, min(1.0f, w));
-			forxy(diff) {
-				diff(p) *= w;
-			}
+			sw::timeit("2 loops", [&]() {
+				forxy(diff) {
+					diff(p) *= w;
+				}
+			});
 			if(i == lastLevel)
 			{
-				scales[lastLevel] = ::map(transformed, [&](ivec2 p) { return thisOrigScale(p) + diff(p); });//.clone();
+				sw::timeit("::map", [&]() {
+#pragma omp parallel for
+					for (int i = 0; i < transformed.area; i++) {
+						scales[lastLevel](i) = thisOrigScale(i) + diff(i);//.clone();
+					}
+				});
 				break;
 			}
 			auto& nextScaleUp = scales[i-1];
 			//texs[i] = gtex(::resize(transformed, nextScaleUp.Size(), filter));
 			auto upscaledDiff = ::resize(diff, nextScaleUp.Size(), filter);
-			forxy(nextScaleUp) {
-				nextScaleUp(p) += upscaledDiff(p);
-			}
+			sw::timeit("2 loops", [&]() {
+				forxy(nextScaleUp) {
+					nextScaleUp(p) += upscaledDiff(p);
+				}
+			});
 		}
 		return scales[lastLevel];
 	}

@@ -93,6 +93,8 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <OpenMPSupport>true</OpenMPSupport>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <StructMemberAlignment>Default</StructMemberAlignment>
     </ClCompile>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -159,6 +161,9 @@
   <ItemGroup>
     <None Include="hcl_lib.fs" />
     <None Include="stuff.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="OldCode.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

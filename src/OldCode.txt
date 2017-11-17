@@ -1,0 +1,16 @@
+		auto guidance = Array2D<float>(img.w, img.h);
+		guidance = img;
+		sw::timeit("guidance blurs", [&]() {
+			/*float sumw=0.0f;
+			for(int r = 0; r < 30; r+=9) {
+				auto blurred = gaussianBlur(img, r * 2 + 1);
+				//float w = r * r;
+				float w = pow(1.0f / 4.0f, float(r));
+				sumw+=w;
+				forxy(guidance)
+					guidance(p) += w * blurred(p);
+			}
+			forxy(guidance)
+				guidance(p) /= sumw;*/
+			//guidance = gaussianBlur(img, 6);
+		});

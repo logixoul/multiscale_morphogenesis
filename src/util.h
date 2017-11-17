@@ -210,9 +210,7 @@ template<class F> float apply(float v, F f)
 // #define forxy(w, h) for(int i = 0; i < w; i++) for(int j = 0; j < h; j++)
 #define forxy(image) \
 	for(ivec2 p(0, 0); p.x < image.w; p.x++) \
-		for(p.y = 0; p.y < image.h; p.y++) \
-			for(bool SOME_LONG_BOOL=true; SOME_LONG_BOOL;) \
-				for(decltype(image(p))& pixel=image(p); SOME_LONG_BOOL; SOME_LONG_BOOL = false)
+		for(p.y = 0; p.y < image.h; p.y++)
 
 inline float psin(float a)
 {
