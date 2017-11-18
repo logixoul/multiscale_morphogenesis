@@ -77,9 +77,9 @@ struct SApp : App {
 			gradients = get_gradients(img);
 		});
 		sw::timeit("calc velocities [the rest]", [&]() {
-			for(int x = 0; x < img.w; x++)
+			for(int y = 0; y < img.h; y++)
 			{
-				for(int y = 0; y < img.h; y++)
+				for (int x = 0; x < img.w; x++)
 				{
 					vec2 p = vec2(x,y);
 					vec2 grad = safeNormalized(gradients(x, y));
@@ -136,15 +136,15 @@ struct SApp : App {
 		foreach(auto& s, origScales) s = s.clone();
 		int lastLevel = 0;
 		for(int i = scales.size() - 1; i >= lastLevel; i--) {
-			texs[i] = gtex(scales[i]);
+			//texs[i] = gtex(scales[i]);
 			auto& thisScale = scales[i];
 			auto& thisOrigScale = origScales[i];
 			auto transformed = func(thisScale);
 			auto diff = empty_like(transformed);
 			sw::timeit("::map", [&]() {
 #pragma omp parallel for
-				for(int i = 0; i < diff.area; i++) {
-					diff(i) = transformed(i) - thisOrigScale(i);
+				for(int j = 0; j < diff.area; j++) {
+					diff(j) = transformed(j) - thisOrigScale(j);
 				}
 			});
 			float w = 1.0f-pow(i/float(scales.size()-1), 10.0f);
@@ -158,8 +158,8 @@ struct SApp : App {
 			{
 				sw::timeit("::map", [&]() {
 #pragma omp parallel for
-					for (int i = 0; i < transformed.area; i++) {
-						scales[lastLevel](i) = thisOrigScale(i) + diff(i);//.clone();
+					for (int j = 0; j < transformed.area; j++) {
+						scales[lastLevel](j) = thisOrigScale(j) + diff(j);//.clone();
 					}
 				});
 				break;
