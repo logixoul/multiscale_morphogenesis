@@ -35,7 +35,6 @@ inline gl::TextureRef shade2(
 	gl::TextureRef tex,
 	string src, ShadeOpts const& opts = ShadeOpts(), string lib = "")
 {
-	cout << "src=" << endl;
 	return baseshade2(list_of(tex), src, opts, lib);
 }
 inline gl::TextureRef shade2(

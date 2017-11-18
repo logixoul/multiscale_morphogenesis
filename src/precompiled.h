@@ -18,6 +18,7 @@
 #include <cinder/Vector.h>
 #include <cinder/Rand.h>
 #include <boost/foreach.hpp>
+#include <float.h>
 #include <fftw3.h>
 #include <numeric>
 #include <tuple>

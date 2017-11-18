@@ -123,6 +123,7 @@
     <ClCompile Include="colorspaces.cpp" />
     <ClCompile Include="easyfft.cpp" />
     <ClCompile Include="gpuBlur2_4.cpp" />
+    <ClCompile Include="gpuBlur2_5.cpp" />
     <ClCompile Include="hdrwrite.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PerlinCalculator2D.cpp" />
@@ -138,6 +139,7 @@
     <ClCompile Include="stefanfw.cpp" />
     <ClCompile Include="stuff.cpp" />
     <ClCompile Include="sw.cpp" />
+    <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -147,6 +149,7 @@
     <ClInclude Include="easyfft.h" />
     <ClInclude Include="gpgpu.h" />
     <ClInclude Include="gpuBlur2_4.h" />
+    <ClInclude Include="gpuBlur2_5.h" />
     <ClInclude Include="hdrwrite.h" />
     <ClInclude Include="PerlinCalculator2D.h" />
     <ClInclude Include="precompiled.h" />
@@ -156,10 +159,12 @@
     <ClInclude Include="stefanfw.h" />
     <ClInclude Include="stuff.h" />
     <ClInclude Include="sw.h" />
+    <ClInclude Include="TextureCache.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="hcl_lib.fs" />
+    <None Include="simplexnoise3d.fs.glsl" />
     <None Include="stuff.fs" />
   </ItemGroup>
   <ItemGroup>

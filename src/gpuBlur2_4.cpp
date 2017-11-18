@@ -13,7 +13,7 @@ extern bool keys[];
 namespace gpuBlur2_4 {
 
 	gl::TextureRef run(gl::TextureRef src, int lvls) {
-		auto state = Shade().tex(src).expr("fetch3()").run();
+		auto state = shade2(src, "_out = fetch3();");
 	
 		for(int i = 0; i < lvls; i++) {
 			state = singleblur(state, .5, .5);
@@ -22,8 +22,8 @@ namespace gpuBlur2_4 {
 		return state;
 	}
 	gl::TextureRef run_longtail(gl::TextureRef src, int lvls, float lvlmul) {
-		auto zoomstate = Shade().tex(src).expr("fetch3()").run();
-		auto accstate = Shade().tex(src).expr("vec3(0.0)").run();
+		auto zoomstate = shade2(src, "_out = fetch3();");
+		auto accstate = shade2(src, "_out = vec3(0.0);");
 		
 		vector<float> weights;
 		float sumw = 0.0f;
@@ -122,26 +122,25 @@ namespace gpuBlur2_4 {
 		weights << fixed << "float w0="<<w0 << ", w1=" << w1 << ", w2=" << w2 << /*",w3=" << w3 <<*/ ";"<<endl;
 		
 		string shader =
-			"void shade() {"
-			"	vec2 offset = vec2(GB2_offsetX, GB2_offsetY);"
-			"	vec3 aM2 = fetch3(tex, tc + (-2.0) * offset * tsize);"
-			"	vec3 aM1 = fetch3(tex, tc + (-1.0) * offset * tsize);"
-			"	vec3 a0 = fetch3(tex, tc + (0.0) * offset * tsize);"
-			"	vec3 aP1 = fetch3(tex, tc + (+1.0) * offset * tsize);"
-			"	vec3 aP2 = fetch3(tex, tc + (+2.0) * offset * tsize);"
+			"vec2 offset = vec2(GB2_offsetX, GB2_offsetY);"
+			"vec3 aM2 = fetch3(tex, tc + (-2.0) * offset * tsize);"
+			"vec3 aM1 = fetch3(tex, tc + (-1.0) * offset * tsize);"
+			"vec3 a0 = fetch3(tex, tc + (0.0) * offset * tsize);"
+			"vec3 aP1 = fetch3(tex, tc + (+1.0) * offset * tsize);"
+			"vec3 aP2 = fetch3(tex, tc + (+2.0) * offset * tsize);"
 			""
 			+ weights.str() +
-			"	_out = w2 * (aM2 + aP2) + w1 * (aM1 + aP1) + w0 * a0;"
-			"}";
+			"_out = w2 * (aM2 + aP2) + w1 * (aM1 + aP1) + w0 * a0;";
 
 		globaldict["GB2_offsetX"] = 1.0;
 		globaldict["GB2_offsetY"] = 0.0;
 		setWrapBlack(src);
-		auto hscaled = ::Shade().tex(src).src(shader).scale(hscale, 1.0f).run();
+		auto hscaled = shade2(src, shader, ShadeOpts().scale(hscale, 1.0f));
 		globaldict["GB2_offsetX"] = 0.0;
 		globaldict["GB2_offsetY"] = 1.0;
 		setWrapBlack(hscaled);
-		auto vscaled = ::Shade().tex(hscaled).src(shader).scale(1.0f, vscale).run();
+		auto vscaled = shade2(hscaled, shader, ShadeOpts().scale(1.0f, vscale));
 		return vscaled;
 	}
+
 }

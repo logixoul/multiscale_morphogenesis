@@ -76,38 +76,6 @@ void enableDenormalFlushToZero() {
 	_controlfp(_DN_FLUSH, _MCW_DN);
 }
 
-void draw(const gl::TextureRef &texture, const Area &srcArea, const Rectf &dstRect, gl::GlslProgRef const& glsl)
-{
-	if (!texture)
-		return;
-
-	auto ctx = gl::context();
-
-	Rectf texRect = texture->getAreaTexCoords(srcArea);
-
-	gl::ScopedVao vaoScp(ctx->getDrawTextureVao());
-	gl::ScopedBuffer vboScp(ctx->getDrawTextureVbo());
-	gl::ScopedTextureBind texBindScope(texture);
-
-	gl::ScopedGlslProg glslScp(glsl);
-	glsl->uniform("uTex0", 0);
-	glsl->uniform("uPositionOffset", dstRect.getUpperLeft());
-	glsl->uniform("uPositionScale", dstRect.getSize());
-	glsl->uniform("uTexCoordOffset", texRect.getUpperLeft());
-	glsl->uniform("uTexCoordScale", texRect.getSize());
-
-	ctx->setDefaultShaderVars();
-	ctx->drawArrays(GL_TRIANGLE_STRIP, 0, 4);
-}
-
-void draw(const gl::TextureRef &texture, const Rectf &dstRect, gl::GlslProgRef const& glsl)
-{
-	if (!texture)
-		return;
-
-	draw(texture, texture->getBounds(), dstRect, glsl);
-}
-
 gl::TextureRef redToLuminance(gl::TextureRef const& in) {
 	return shade2(in,
 		"_out.rgb = vec3(fetch1());",

@@ -52,6 +52,14 @@ float smoothstep(float edge0, float edge1, float x)
 	return x*x*(3 - 2*x);
 }
 
+float linearstep(float edge0, float edge1, float x)
+{
+	// Scale, bias and saturate x to 0..1 range
+	x = (x - edge0) / (edge1 - edge0);
+	x = constrain(x, 0.f, 1.f);
+	return x;
+}
+
 // Program tested on Microsoft Visual Studio 2008 - Zahid Ghadialy
 // This program shows example of Getting Elapsed Time
 //#include <windows.h>

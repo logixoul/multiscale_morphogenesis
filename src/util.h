@@ -260,6 +260,8 @@ template <typename T> int sgn(T val)
 
 float smoothstep(float edge0, float edge1, float x);
 
+float linearstep(float edge0, float edge1, float x);
+
 namespace Stopwatch
 {
 	void Start();
