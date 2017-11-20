@@ -43,7 +43,7 @@ struct ShadeOpts
 	ShadeOpts& texCache(TextureCache* val) { _texCache = val; return *this; }
 	optional<GLenum> _ifmt;
 	float _scaleX, _scaleY;
-	optional<TextureCache*> _texCache;
+	TextureCache* _texCache = nullptr;
 };
 
 gl::TextureRef shade(vector<gl::TextureRef> const& texv, const char* fshader_constChar, ShadeOpts const& opts=ShadeOpts());

@@ -209,8 +209,8 @@ template<class F> float apply(float v, F f)
 // commenting it out until I've seen whether removing it breaks my projs.
 // #define forxy(w, h) for(int i = 0; i < w; i++) for(int j = 0; j < h; j++)
 #define forxy(image) \
-	for(ivec2 p(0, 0); p.x < image.w; p.x++) \
-		for(p.y = 0; p.y < image.h; p.y++)
+	for(ivec2 p(0, 0); p.y < image.h; p.y++) \
+		for(p.x = 0; p.x < image.w; p.x++)
 
 inline float psin(float a)
 {

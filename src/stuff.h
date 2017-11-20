@@ -2,6 +2,7 @@
 #include "precompiled.h"
 #include "util.h"
 #include "qdebug.h"
+#include "TextureCache.h"
 
 const GLenum hdrFormat = GL_RGBA16F;
 
@@ -584,13 +585,13 @@ auto map(Array2D<TSrc> a, Func func) -> Array2D<typename MapHelper<Func>::result
 	return result;
 }
 
-template<class T>
+template<class T, class FetchFunc>
 vec2 gradient_i2(Array2D<T> src, ivec2 p)
 {
 	T nbs[3][3];
 	for(int x = -1; x <= 1; x++) {
 		for(int y = -1; y <= 1; y++) {
-			nbs[x+1][y+1] = get_clamped(src, p.x + x, p.y + y);
+			nbs[x+1][y+1] = FetchFunc::fetch(src, p.x + x, p.y + y);
 		}
 	}
 	vec2 gradient;
@@ -686,13 +687,23 @@ Array2D<vec2> get_gradients(Array2D<T> src)
 	return get_gradients<T, WrapModes::DefaultImpl>(src);
 }
 
-inline gl::TextureRef maketex(int w, int h, GLint internalFormat) {
-	gl::Texture::Format fmt; fmt.setInternalFormat(internalFormat); return gl::Texture::create(NULL, GL_RGBA, w, h, fmt);
+inline gl::TextureRef maketex(int w, int h, GLint ifmt, TextureCache* texCache = nullptr) {
+	if (texCache != nullptr) {
+		TextureCacheKey key;
+		key.ifmt = ifmt;
+		key.size = ivec2(w, h);
+		return texCache->get(key);
+	}
+	else {
+		gl::Texture::Format fmt;
+		fmt.setInternalFormat(ifmt);
+		return gl::Texture::create(w, h, fmt);
+	}
 }
 
 template<class T>
 Array2D<T> gettexdata(gl::TextureRef tex, GLenum format, GLenum type) {
-	return gettexdata<T>(tex, format, type, tex.getBounds());
+	return gettexdata<T>(tex, format, type, tex->getBounds());
 }
 
 inline void checkGLError(string place)
@@ -713,7 +724,7 @@ inline void checkGLError(string place)
 template<class T>
 Array2D<T> gettexdata(gl::TextureRef tex, GLenum format, GLenum type, ci::Area area) {
 	Array2D<T> data(area.getWidth(), area.getHeight());
-	tex.bind();
+	tex->bind();
 	//glGetTexImage(GL_TEXTURE_2D, 0, format, type, data.data);
 	beginRTT(tex);
 	glReadPixels(area.x1, area.y1, area.getWidth(), area.getHeight(), format, type, data.data);

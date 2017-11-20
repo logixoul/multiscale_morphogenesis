@@ -71,28 +71,28 @@ struct SApp : App {
 			[&]() { return true; },
 			[&]() { return niceExpRangeX(mouseX, .05f, 1000.0f); });
 
-		auto perpLeft = [&](vec2 v) { return vec2(-v.y, v.x); }; //correct
-		Array2D<vec2> gradients;
+		auto tex = gtex(img);
+		gl::TextureRef gradientsTex;
 		sw::timeit("calc velocities [get_gradients]", [&]() {
-			gradients = get_gradients(img);
+			gradientsTex = get_gradients_tex(tex);
 		});
 		sw::timeit("calc velocities [the rest]", [&]() {
-			for(int y = 0; y < img.h; y++)
-			{
-				for (int x = 0; x < img.w; x++)
-				{
-					vec2 p = vec2(x,y);
-					vec2 grad = safeNormalized(gradients(x, y));
-
-					vec2 gradP = perpLeft(grad);
-					
-					float val = img(x, y);
-					float valLeft = getBilinear<float, WrapModes::GetWrapped>(img, p+gradP);
-					float valRight = getBilinear<float, WrapModes::GetWrapped>(img, p-gradP);
-					float add = (val - (valLeft + valRight) * .5f);
-					img(x, y) += add * abc;
-				}
-			}
+			globaldict["abc"] = abc;
+			tex = shade2(tex, gradientsTex,
+				"vec2 grad = fetch2(tex2);"
+				"vec2 dir = perpLeft(safeNormalized(grad));"
+				""
+				"float val = fetch1();"
+				"float valLeft = fetch1(tex, tc + tsize * dir);"
+				"float valRight = fetch1(tex, tc - tsize * dir);"
+				"float add = (val - (valLeft + valRight) * .5f);"
+				"_out.r = val + add * abc;"
+				, ShadeOpts(),
+				"vec2 perpLeft(vec2 v) {"
+				"	return vec2(-v.y, v.x);"
+				"}"
+			);
+			img = gettexdata<float>(tex, GL_RED, GL_FLOAT);
 		});
 		
 		img=::to01(img);

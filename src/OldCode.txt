@@ -14,3 +14,38 @@
 				guidance(p) /= sumw;*/
 			//guidance = gaussianBlur(img, 6);
 		});
+
+
+==========================================
+
+					float secondDerX = (gradients.wr(x + 1, y).x - gradients.wr(x - 1, y).x) / 2.0f;
+					float secondDerY = (gradients.wr(x, y + 1).y - gradients.wr(x, y - 1).y) / 2.0f;
+					float crossDer = (gradients.wr(x, y + 1).x - gradients.wr(x, y - 1).x) / 2.0f;
+					// http://mathonline.wikidot.com/higher-order-directional-derivatives
+					float dirDer = sq(dir.x)*secondDerX + 2 * dir.x*dir.y*crossDer + sq(dir.y)*secondDerY;
+					/*if (x == img.w / 2) {
+						cout << "dirDer=" << dirDer << "\n";
+						cout << "dir.x*secondDerX=" << dir.x*secondDerX << "\n";
+						cout << "2 * dir.x*dir.y*crossDer=" << 2 * dir.x*dir.y*crossDer << "\n";
+						cout << "dir.y*secondDerY=" << dir.y*secondDerY << "\n";
+					}*/
+					img(x, y) -= abc * dirDer;
+
+============================================
+			auto perpLeft = [&](vec2 v) { return vec2(-v.y, v.x); }; //correct
+		
+			/*for(int y = 0; y < img.h; y++)
+			{
+				for (int x = 0; x < img.w; x++)
+				{
+					vec2 p = vec2(x,y);
+					vec2 grad = gradients(x, y);
+					vec2 dir = perpLeft(safeNormalized(grad));
+					
+					float val = img(x, y);
+					float valLeft = getBilinear<float, WrapModes::GetWrapped>(img, p+dir);
+					float valRight = getBilinear<float, WrapModes::GetWrapped>(img, p-dir);
+					float add = (val - (valLeft + valRight) * .5f);
+					img(x, y) += add * abc;
+				}
+			}*/
