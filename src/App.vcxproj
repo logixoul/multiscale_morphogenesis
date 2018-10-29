@@ -68,7 +68,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>libfftw3f-3.lib;cinder.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>z:\stuff\Dev\referenced\lib;z:\stuff\Dev\referenced\lib\Debug;C:\Users\Stefan\Desktop\code_\include\lib\Release;$(TargetDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>z:\stuff\Dev\referenced\lib;z:\stuff\Dev\referenced\lib\Debug;$(TargetDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -77,6 +77,9 @@
       <TargetMachine>MachineX86</TargetMachine>
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -117,6 +120,9 @@
       <TargetMachine>MachineX86</TargetMachine>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cfg1.cpp" />
@@ -126,7 +132,7 @@
     <ClCompile Include="gpuBlur2_5.cpp" />
     <ClCompile Include="hdrwrite.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="PerlinCalculator2D.cpp" />
+    
     <ClCompile Include="precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">precompiled.h</PrecompiledHeaderFile>
@@ -151,7 +157,7 @@
     <ClInclude Include="gpuBlur2_4.h" />
     <ClInclude Include="gpuBlur2_5.h" />
     <ClInclude Include="hdrwrite.h" />
-    <ClInclude Include="PerlinCalculator2D.h" />
+    
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="qdebug.h" />
     <ClInclude Include="shade.h" />
