@@ -80,7 +80,8 @@ struct SApp : App {
 		});
 		sw::timeit("calc velocities [the rest]", [&]() {
 			globaldict["abc"] = abc;
-			/*tex = shade2(tex, gradientsTex,
+			cout << "!!!!!!!!!!!!!! abc=" <<abc << endl;
+			tex = shade2(tex, gradientsTex,
 				"vec2 grad = fetch2(tex2);"
 				"vec2 dir = perpLeft(safeNormalized(grad));"
 				""
@@ -90,11 +91,13 @@ struct SApp : App {
 				"float add = (val - (valLeft + valRight) * .5f);"
 				"add = max(add, 0);"
 				"_out.r = val + add * abc;"
+				"_out.r = fetch1();"
 				, ShadeOpts(),
 				"vec2 perpLeft(vec2 v) {"
 				"	return vec2(-v.y, v.x);"
 				"}"
-			);*/
+			);
+			CHECK_GL_ERROR();
 			img = gettexdata<float>(tex, GL_RED, GL_FLOAT);
 		});
 		
@@ -180,6 +183,7 @@ struct SApp : App {
 	}
 
 	void stefanUpdate() {
+		glDisable(GL_BLEND);
 		//return;
 		if(pause2) {
 			return;
@@ -190,10 +194,10 @@ struct SApp : App {
 	void stefanDraw()
 	{
 		gl::clear(Color(0, 0, 0));
+		glDisable(GL_BLEND);
 		cout <<"frame# "<<getElapsedFrames()<<endl;
 		sw::timeit("draw", [&]() {
 			if(1) {
-				glDisable(GL_BLEND);
 				auto tex = gtex(img);
 				drawAsLuminance(tex, getWindowBounds());
 				//gl::draw(redToLuminance(tex), getWindowBounds());
