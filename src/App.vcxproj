@@ -130,9 +130,7 @@
     <ClCompile Include="easyfft.cpp" />
     <ClCompile Include="gpuBlur2_4.cpp" />
     <ClCompile Include="gpuBlur2_5.cpp" />
-    <ClCompile Include="hdrwrite.cpp" />
     <ClCompile Include="main.cpp" />
-    
     <ClCompile Include="precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">precompiled.h</PrecompiledHeaderFile>
@@ -156,8 +154,6 @@
     <ClInclude Include="gpgpu.h" />
     <ClInclude Include="gpuBlur2_4.h" />
     <ClInclude Include="gpuBlur2_5.h" />
-    <ClInclude Include="hdrwrite.h" />
-    
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="qdebug.h" />
     <ClInclude Include="shade.h" />
