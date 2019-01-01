@@ -89,9 +89,9 @@ struct SApp : App {
 				"float valLeft = fetch1(tex, tc + tsize * dir);"
 				"float valRight = fetch1(tex, tc - tsize * dir);"
 				"float add = (val - (valLeft + valRight) * .5f);"
-				"add = max(add, 0);"
+				//"add = max(add, 0);"
 				"_out.r = val + add * abc;"
-				"_out.r = fetch1();"
+				//"_out.r = fetch1();"
 				, ShadeOpts(),
 				"vec2 perpLeft(vec2 v) {"
 				"	return vec2(-v.y, v.x);"
@@ -188,8 +188,8 @@ struct SApp : App {
 		if(pause2) {
 			return;
 		}
-		//img = multiscaleApply(img, update_1_scale);
-		img = update_1_scale(img);
+		img = multiscaleApply(img, update_1_scale);
+		//img = update_1_scale(img);
 	}
 	void stefanDraw()
 	{
