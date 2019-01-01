@@ -128,9 +128,11 @@
     <ClCompile Include="cfg1.cpp" />
     <ClCompile Include="colorspaces.cpp" />
     <ClCompile Include="easyfft.cpp" />
-    <ClCompile Include="gpuBlur2_4.cpp" />
+    <ClCompile Include="gpgpu.cpp" />
     <ClCompile Include="gpuBlur2_5.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="myFFT.cpp" />
+    <ClCompile Include="MyTimer.cpp" />
     <ClCompile Include="precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">precompiled.h</PrecompiledHeaderFile>
@@ -138,6 +140,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="qdebug.cpp" />
+    <ClCompile Include="RenderDoc.cpp" />
     <ClCompile Include="shade.cpp" />
     <ClCompile Include="simplexnoise.cpp" />
     <ClCompile Include="stefanfw.cpp" />
@@ -152,10 +155,13 @@
     <ClInclude Include="colorspaces.h" />
     <ClInclude Include="easyfft.h" />
     <ClInclude Include="gpgpu.h" />
-    <ClInclude Include="gpuBlur2_4.h" />
     <ClInclude Include="gpuBlur2_5.h" />
+    <ClInclude Include="myFFT.h" />
+    <ClInclude Include="MyTimer.h" />
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="qdebug.h" />
+    <ClInclude Include="RenderDoc.h" />
+    <ClInclude Include="renderdoc_app.h" />
     <ClInclude Include="shade.h" />
     <ClInclude Include="simplexnoise.h" />
     <ClInclude Include="stefanfw.h" />

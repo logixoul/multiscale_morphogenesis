@@ -14,6 +14,8 @@ typedef WrapModes::GetWrapped WrapMode;
 // baseline 7fps
 // now 9fps
 
+int count1, count2; // todo: rm this
+
 //int wsx=800, wsy=800.0*(800.0/1280.0);
 int wsx=1280, wsy=720;
 int scale=2;
@@ -78,7 +80,7 @@ struct SApp : App {
 		});
 		sw::timeit("calc velocities [the rest]", [&]() {
 			globaldict["abc"] = abc;
-			tex = shade2(tex, gradientsTex,
+			/*tex = shade2(tex, gradientsTex,
 				"vec2 grad = fetch2(tex2);"
 				"vec2 dir = perpLeft(safeNormalized(grad));"
 				""
@@ -86,12 +88,13 @@ struct SApp : App {
 				"float valLeft = fetch1(tex, tc + tsize * dir);"
 				"float valRight = fetch1(tex, tc - tsize * dir);"
 				"float add = (val - (valLeft + valRight) * .5f);"
+				"add = max(add, 0);"
 				"_out.r = val + add * abc;"
 				, ShadeOpts(),
 				"vec2 perpLeft(vec2 v) {"
 				"	return vec2(-v.y, v.x);"
 				"}"
-			);
+			);*/
 			img = gettexdata<float>(tex, GL_RED, GL_FLOAT);
 		});
 		
@@ -133,7 +136,7 @@ struct SApp : App {
 			size /= 2;
 		}
 		vector<Img> origScales=scales;
-		foreach(auto& s, origScales) s = s.clone();
+		for(auto& s: origScales) s = s.clone();
 		int lastLevel = 0;
 		for(int i = scales.size() - 1; i >= lastLevel; i--) {
 			//texs[i] = gtex(scales[i]);
@@ -177,11 +180,12 @@ struct SApp : App {
 	}
 
 	void stefanUpdate() {
+		//return;
 		if(pause2) {
 			return;
 		}
-		img = multiscaleApply(img, update_1_scale);
-		//img = update_1_scale(img);
+		//img = multiscaleApply(img, update_1_scale);
+		img = update_1_scale(img);
 	}
 	void stefanDraw()
 	{
@@ -189,12 +193,14 @@ struct SApp : App {
 		cout <<"frame# "<<getElapsedFrames()<<endl;
 		sw::timeit("draw", [&]() {
 			if(1) {
+				glDisable(GL_BLEND);
 				auto tex = gtex(img);
-				gl::draw(redToLuminance(tex), getWindowBounds());
+				drawAsLuminance(tex, getWindowBounds());
+				//gl::draw(redToLuminance(tex), getWindowBounds());
 			} else {
 				vector<gl::TextureRef> ordered;
 				do {
-					foreach(auto& pair, texs) {
+					for(auto& pair: texs) {
 						ordered.push_back(pair.second);
 					}
 				}while(0);
@@ -204,7 +210,8 @@ struct SApp : App {
 				auto tex=ordered[i];
 				tex->bind();
 				//tex.setMagFilter(GL_NEAREST);
-				gl::draw(redToLuminance(tex), getWindowBounds());
+				drawAsLuminance(tex, getWindowBounds());
+				//gl::draw(redToLuminance(tex), getWindowBounds());
 			}
 		});
 	}

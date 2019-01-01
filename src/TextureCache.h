@@ -20,21 +20,40 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #pragma once
 #include "precompiled.h"
 
-extern float mouseX, mouseY;
-extern bool keys[256];
-extern bool keys2[256];
-extern bool mouseDown_[3];
-extern int wsx, wsy; // define and initialize those in main.cpp
+struct TextureCacheKey {
+	ivec2 size;
+	GLenum ifmt;
+	
+	bool operator==(const TextureCacheKey &other) const
+	{
+		return size == other.size
+			&& ifmt == other.ifmt;
+	}
+};
 
-// stefan's framework
-namespace stefanfw {
-	void beginFrame();
-	void endFrame();
-	struct EventHandler {
-		bool keyDown(KeyEvent e);
-		bool keyUp(KeyEvent e);
-		bool mouseDown(MouseEvent e);
-		bool mouseUp(MouseEvent e);
-		void subscribeToEvents(ci::app::App& app);
-	} extern eventHandler;
+namespace std {
+
+	template <>
+	struct hash<TextureCacheKey>
+	{
+		std::size_t operator()(const TextureCacheKey& k) const
+		{
+			return k.size.x ^ k.size.y ^ k.ifmt;
+		}
+	};
+
+}
+
+class TextureCache
+{
+public:
+	TextureCache();
+	gl::TextureRef get(TextureCacheKey const& key);
+	static void clearCaches();
+
+	static void printTextures();
+
+private:
+	std::unordered_map<TextureCacheKey, vector<gl::TextureRef>> cache;
+	static std::vector<TextureCache*> instances;
 };

@@ -1,14 +1,46 @@
+/*
+Tonemaster - HDR software
+Copyright (C) 2018 Stefan Monov <logixoul@gmail.com>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "precompiled.h"
 #include "easyfft.h"
+#include "sw.h"
+
+ivec2 toHermitianSize(ivec2 in) {
+	return ivec2(in.x / 2 + 1, in.y);
+}
+
+ivec2 fromHermitianSize(ivec2 in) {
+	return ivec2((in.x - 1) * 2, in.y);
+}
 
 class PlanCache {
 public:
-	static fftwf_plan getPlan(ivec2 arrSize, int direction, int flags) {
-		Key key = { arrSize, direction };
+	static fftwf_plan getPlan(ivec2 logicalSize, int direction, int flags) {
+		Key key = { logicalSize, direction };
 		if(cache.find(key) == cache.end()) {
-			Array2D<fftwf_complex> in(arrSize, nofill());
-			Array2D<fftwf_complex> out(arrSize, nofill());
-			auto plan = fftwf_plan_dft_2d(arrSize.y, arrSize.x, in.data, out.data, FFTW_FORWARD, flags);
+			Array2D<vec2> in(logicalSize, nofill());
+			Array2D<vec2> out(logicalSize, nofill());
+			fftwf_set_timelimit(1.0f);
+			fftwf_plan plan;
+			if(direction == FFTW_FORWARD)
+				plan = fftwf_plan_dft_r2c_2d(logicalSize.y, logicalSize.x, (float*)in.data, (fftwf_complex*)out.data, flags);
+			else
+				plan = fftwf_plan_dft_c2r_2d(logicalSize.y, logicalSize.x, (fftwf_complex*)in.data, (float*)out.data, flags);
 			cache[key] = plan;
 			return plan;
 		}
@@ -31,40 +63,19 @@ private:
 
 std::map<PlanCache::Key, fftwf_plan, PlanCache::KeyComparator> PlanCache::cache;
 
-Array2D<Complexf> fft(Array2D<float> in, int flags)
+Array2D<vec2> fft(Array2D<float> in, int flags)
 {
-	Array2D<Complexf> in_complex(in.Size());
-	forxy(in)
-	{
-		in_complex(p) = Complexf(in(p));
-	}
-	Array2D<Complexf> result(in.Size());
+	Array2D<vec2> result(toHermitianSize(in.Size()));
 	
 	auto plan = PlanCache::getPlan(in.Size(), FFTW_FORWARD, flags);
-	fftwf_execute_dft(plan, (fftwf_complex*)in_complex.data, (fftwf_complex*)result.data);
-	auto mul = 1.0f / sqrt((float)result.area);
-	forxy(result)
-	{
-		result(p) *= mul;
-	}
+	fftwf_execute_dft_r2c(plan, in.data, (fftwf_complex*)result.data);
 	return result;
 }
 
-Array2D<float> ifft(Array2D<Complexf> in, int flags)
+Array2D<float> ifft(Array2D<vec2> in, ivec2 outSize, int flags)
 {
-	Array2D<Complexf> result(in.Size());
-	auto plan = PlanCache::getPlan(in.Size(), FFTW_BACKWARD, flags);
-	fftwf_execute_dft(plan, (fftwf_complex*)in.data, (fftwf_complex*)result.data);
-
-	Array2D<float> out_real(in.Size());
-	forxy(in)
-	{
-		out_real(p) = result(p).real();
-	}
-	auto mul = 1.0f / sqrt((float)out_real.area);
-	forxy(out_real)
-	{
-		out_real(p) *= mul;
-	}
-	return out_real;
+	Array2D<float> result(outSize);
+	auto plan = PlanCache::getPlan(outSize, FFTW_BACKWARD, flags);
+	fftwf_execute_dft_c2r(plan, (fftwf_complex*)in.data, result.data);
+	return result;
 }

@@ -1,5 +1,26 @@
+/*
+Tonemaster - HDR software
+Copyright (C) 2018 Stefan Monov <logixoul@gmail.com>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
+
 #include "precompiled.h"
 #include "util.h"
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h> // tmp for AllocConsole
 
 void trapFP()
 {
@@ -21,8 +42,10 @@ float randFloat()
 void createConsole()
 {
 	AllocConsole();
-	std::fstream* fs = new std::fstream("CONOUT$");
-	std::cout.rdbuf(fs->rdbuf());
+	std::fstream* fsOut = new std::fstream("CONOUT$");
+	std::cout.rdbuf(fsOut->rdbuf());
+	std::fstream* fsIn = new std::fstream("CONIN$");
+	std::cin.rdbuf(fsIn->rdbuf());
 }
 
 void loadFile(std::vector<unsigned char>& buffer, const std::string& filename) //designed for loading files from hard disk in an std::vector
@@ -43,15 +66,6 @@ void loadFile(std::vector<unsigned char>& buffer, const std::string& filename) /
   else buffer.clear();
 }
 
-float smoothstep(float edge0, float edge1, float x)
-{
-	// Scale, bias and saturate x to 0..1 range
-	x = (x - edge0)/(edge1 - edge0);
-	x = constrain(x, 0.f, 1.f);
-	// Evaluate polynomial
-	return x*x*(3 - 2*x);
-}
-
 float linearstep(float edge0, float edge1, float x)
 {
 	// Scale, bias and saturate x to 0..1 range
@@ -60,46 +74,11 @@ float linearstep(float edge0, float edge1, float x)
 	return x;
 }
 
-// Program tested on Microsoft Visual Studio 2008 - Zahid Ghadialy
-// This program shows example of Getting Elapsed Time
-//#include <windows.h>
-#include <MMSystem.h>
-using namespace std;
-#pragma comment(lib, "winmm.lib")
-
-LARGE_INTEGER timerFreq_;
-LARGE_INTEGER counterAtStart_;
-namespace Stopwatch
+void copyCvtData(ci::Surface8u const & surface, Array2D<bytevec3> dst)
 {
-	void Start()
-	{
-	  QueryPerformanceFrequency(&timerFreq_);
-	  QueryPerformanceCounter(&counterAtStart_);
-	  TIMECAPS ptc;
-	  UINT cbtc = 8;
-	  MMRESULT result = timeGetDevCaps(&ptc, cbtc);
-	  if (result == TIMERR_NOERROR)
-	  {
-	  }
-	  else
-	  {
-		cout<<"result = TIMER ERROR"<<endl;
-	  }
-	}
-
-	double GetElapsedMilliseconds()
-	{
-	  if (timerFreq_.QuadPart == 0)
-	  {
-		return -1;
-	  }
-	  else
-	  {
-		LARGE_INTEGER c;
-		QueryPerformanceCounter(&c);
-		double elapsed = (c.QuadPart - counterAtStart_.QuadPart) * 1000 / (double)timerFreq_.QuadPart;
-		return elapsed;
-	  }
+	forxy(dst) {
+		ColorAT<uint8_t> inPixel = surface.getPixel(p);
+		dst(p) = bytevec3(inPixel.r, inPixel.g, inPixel.b);
 	}
 }
 

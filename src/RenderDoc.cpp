@@ -17,24 +17,28 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#pragma once
 #include "precompiled.h"
+#include "RenderDoc.h"
 
-extern float mouseX, mouseY;
-extern bool keys[256];
-extern bool keys2[256];
-extern bool mouseDown_[3];
-extern int wsx, wsy; // define and initialize those in main.cpp
+RENDERDOC_API_1_0_0 *RenderDoc::rdoc_api = nullptr;
 
-// stefan's framework
-namespace stefanfw {
-	void beginFrame();
-	void endFrame();
-	struct EventHandler {
-		bool keyDown(KeyEvent e);
-		bool keyUp(KeyEvent e);
-		bool mouseDown(MouseEvent e);
-		bool mouseUp(MouseEvent e);
-		void subscribeToEvents(ci::app::App& app);
-	} extern eventHandler;
-};
+void RenderDoc::init()
+{
+	if (HMODULE mod = GetModuleHandleA("renderdoc.dll"))
+	{
+		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)GetProcAddress(mod, "RENDERDOC_GetAPI");
+
+		int ret = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_1_2, (void **)&rdoc_api);
+
+	}
+}
+
+void RenderDoc::StartFrameCapture()
+{
+	if (rdoc_api) rdoc_api->StartFrameCapture(NULL, NULL);
+}
+
+void RenderDoc::EndFrameCapture()
+{
+	if (rdoc_api) rdoc_api->EndFrameCapture(NULL, NULL);
+}

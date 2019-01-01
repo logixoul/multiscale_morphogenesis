@@ -16,25 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 #pragma once
 #include "precompiled.h"
+#include "TextureCache.h"
 
-extern float mouseX, mouseY;
-extern bool keys[256];
-extern bool keys2[256];
-extern bool mouseDown_[3];
-extern int wsx, wsy; // define and initialize those in main.cpp
+namespace gpuBlur2_5 {
+	gl::TextureRef run(gl::TextureRef src, int lvls);
+	gl::TextureRef run_longtail(gl::TextureRef src, int lvls, float lvlmul, float hscale = .5f, float vscale = .5f);
+	float getGaussW();
+	float gauss(float f, float width);
+	gl::TextureRef upscale(gl::TextureRef src, ci::ivec2 toSize, TextureCache* textureCache = nullptr);
+	gl::TextureRef upscale(gl::TextureRef src, float hscale, float vscale, TextureCache* textureCache = nullptr);
+	gl::TextureRef singleblur(gl::TextureRef src, float hscale, float vscale, TextureCache* textureCache = nullptr, GLenum wrap = GL_CLAMP_TO_BORDER);
+}
 
-// stefan's framework
-namespace stefanfw {
-	void beginFrame();
-	void endFrame();
-	struct EventHandler {
-		bool keyDown(KeyEvent e);
-		bool keyUp(KeyEvent e);
-		bool mouseDown(MouseEvent e);
-		bool mouseUp(MouseEvent e);
-		void subscribeToEvents(ci::app::App& app);
-	} extern eventHandler;
-};
+namespace gpuBlur = gpuBlur2_5;

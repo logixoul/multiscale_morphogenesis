@@ -1,17 +1,33 @@
+/*
+Tonemaster - HDR software
+Copyright (C) 2018 Stefan Monov <logixoul@gmail.com>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
+
 #pragma once
 
 #include "precompiled.h"
+
+#define MULTILINE(...) #__VA_ARGS__
 
 #define COUT_(a) cout << #a << " = " << a << endl;
 inline string esc_macro_helper(string s) { return s.substr(1, s.length()-2); }
 #define ESC_(s) esc_macro_helper(string(#s))
 
 typedef unsigned char byte;
-
-struct XSequential { template<class TArray, class TCoord> static int offset(TArray const& array, TCoord x, TCoord y)
-{ return y*TCoord(array.w)+x; } };
-struct YSequential { template<class TArray, class TCoord> static int offset(TArray const& array, TCoord x, TCoord y)
-{ return x*TCoord(array.h)+y; } };
 
 template<class T>
 class ArrayDeleter
@@ -66,43 +82,58 @@ private:
 
 enum nofill {};
 
-template<class T, class MemoryLayoutPolicy = XSequential>
+template<class T>
 struct Array2D;
 
+typedef glm::tvec3<byte> bytevec3;
+
+void copyCvtData(ci::Surface8u const& surface, Array2D<bytevec3> dst);
 void copyCvtData(ci::Surface8u const& surface, Array2D<vec3> dst);
 void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<vec3> dst);
 void copyCvtData(ci::SurfaceT<float> const& surface, Array2D<float> dst);
 void copyCvtData(ci::ChannelT<float> const& surface, Array2D<float> dst);
 
-template<class T, class MemoryLayoutPolicy>
+template<class T>
 struct Array2D
 {
 	T* data;
 	typedef T value_type;
 	int area;
 	int w, h;
+	int NumBytes() const {
+		return area * sizeof(T);
+	}
 	ci::ivec2 Size() const { return ci::ivec2(w, h); }
 	ArrayDeleter<T> deleter;
 
 	Array2D(int w, int h, nofill) : deleter(Init(w, h)) { }
 	Array2D(ivec2 s, nofill) : deleter(Init(s.x, s.y)) { }
-	Array2D(int dimension, nofill) : deleter(Init(dimension)) { }
 	Array2D(int w, int h, T const& defaultValue = T()) : deleter(Init(w, h)) { fill(defaultValue); }
 	Array2D(ivec2 s, T const& defaultValue = T()) : deleter(Init(s.x, s.y)) { fill(defaultValue); }
-	Array2D(int dimension, T const& defaultValue = T()) : deleter(Init(dimension, dimension)) { fill(defaultValue); }
 	Array2D() : deleter(Init(0, 0)) { }
 	
-	template<class TSrc>
-	Array2D(TSrc const& surface) : deleter(Init(surface.getWidth(), surface.getHeight()))
+	Array2D(ci::Surface8u const& surface) : deleter(Init(surface.getWidth(), surface.getHeight()))
+	{
+		::copyCvtData(surface, *this);
+	}
+
+	Array2D(ci::SurfaceT<float> const& surface) : deleter(Init(surface.getWidth(), surface.getHeight()))
+	{
+		::copyCvtData(surface, *this);
+	}
+
+	Array2D(ci::ChannelT<float> const& surface) : deleter(Init(surface.getWidth(), surface.getHeight()))
 	{
 		::copyCvtData(surface, *this);
 	}
 	
+#ifdef OPENCV_CORE_HPP
 	template<class TSrc>
 	Array2D(cv::Mat_<TSrc> const& mat) : deleter(nullptr)
 	{
 		Init(mat.cols, mat.rows, (T*)mat.data);
 	}
+#endif
 
 	T* begin() { return data; }
 	T* end() { return data+w*h; }
@@ -112,11 +143,11 @@ struct Array2D
 	T& operator()(int i) { return data[i]; }
 	T const& operator()(int i) const { return data[i]; }
 
-	T& operator()(int x, int y) { return data[MemoryLayoutPolicy::offset(*this, x, y)]; }
-	T const& operator()(int x, int y) const { return data[MemoryLayoutPolicy::offset(*this, x, y)]; }
+	T& operator()(int x, int y) { return data[offsetOf(x, y)]; }
+	T const& operator()(int x, int y) const { return data[offsetOf(x, y)]; }
 
-	T& operator()(ivec2 const& v) { return data[MemoryLayoutPolicy::offset(*this, v.x, v.y)]; }
-	T const& operator()(ivec2 const& v) const { return data[MemoryLayoutPolicy::offset(*this, v.x, v.y)]; }
+	T& operator()(ivec2 const& v) { return data[offsetOf(v)]; }
+	T const& operator()(ivec2 const& v) const { return data[offsetOf(v)]; }
 	
 	ivec2 wrapPoint(ivec2 p)
 	{
@@ -132,15 +163,15 @@ struct Array2D
 	T& wr(ivec2 const& v) { return (*this)(wrapPoint(v)); }
 	T const& wr(ivec2 const& v) const { return (*this)(wrapPoint(v)); }
 
-	int offsetOf(int x, int y) const { return MemoryLayoutPolicy::offset(*this, x, y); }
-	int offsetOf(ci::ivec2 const& p) const { return MemoryLayoutPolicy::offset(*this, p.x, p.y); }
+	int offsetOf(int x, int y) const { return y * w + x; }
+	int offsetOf(ci::ivec2 const& p) const { return p.y * w + p.x; }
 	bool contains(int x, int y) const { return x >= 0 && y >= 0 && x < w && y < h; }
 	bool contains(ivec2 const& p) const { return p.x >= 0 && p.y >= 0 && p.x < w && p.y < h; }
 
-	int xStep() const { return MemoryLayoutPolicy::offset(*this, 1, 0) - MemoryLayoutPolicy::offset(*this, 0, 0); }
-	int yStep() const { return MemoryLayoutPolicy::offset(*this, 0, 1) - MemoryLayoutPolicy::offset(*this, 0, 0); }
+	int xStep() const { return offsetOf(1, 0) - offsetOf(0, 0); }
+	int yStep() const { return offsetOf(0, 1) - offsetOf(0, 0); }
 
-	Array2D clone(){
+	Array2D clone() const {
 		Array2D result(Size());
 		std::copy(begin(), end(), result.begin());
 		return result;
@@ -190,6 +221,11 @@ template<class F> vec3 apply(vec3 const& v, F f)
 	return vec3(f(v.x), f(v.y), f(v.z));
 }
 
+template<class F> vec3 apply(float val, F f)
+{
+	return f(val);
+}
+
 // todo rm this
 /*
 
@@ -236,14 +272,6 @@ T max(ci::Vec3<T> vec)
 	return std::max(vec.x, std::max(vec.y, vec.z));
 }*/
 
-template<class Source>
-string ToString(const Source& Value)
-{
-    std::ostringstream oss;
-    oss << Value;
-    return oss.str();
-}
-
 template<class T>
 T Parse(string const& src)
 {
@@ -258,19 +286,7 @@ template <typename T> int sgn(T val)
     return (val > T(0)) - (val < T(0));
 }
 
-float smoothstep(float edge0, float edge1, float x);
-
 float linearstep(float edge0, float edge1, float x);
-
-namespace Stopwatch
-{
-	void Start();
-	double GetElapsedMilliseconds();
-}
-
-#define fortimes(times) for(int i = 0; i < times; i++)
-
-#define FOR(variable, from, to) for(int variable = from; variable <= to; variable++)
 
 void createConsole();
 
@@ -313,3 +329,5 @@ template<class T>
 Array2D<T> zeros_like(Array2D<T> a) {
 	return Array2D<T>(a.Size(), ::zero<T>());
 }
+
+#define STRING(...) #__VA_ARGS__

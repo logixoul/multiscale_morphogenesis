@@ -22,7 +22,7 @@ public:
 	}
 	static void print() {
 		qDebug() << "============ CFG values ============";
-		foreach(auto& pair, opts) {
+		for(auto& pair: opts) {
 			auto& key=pair.first;
 			auto opt = opts[key];
 			qDebug() << opt.name << " = " << opt.val;
