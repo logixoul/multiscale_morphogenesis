@@ -473,7 +473,7 @@ T getBilinear(Array2D<T> src, vec2 p)
 inline gl::TextureRef gtex(Array2D<float> a)
 {
 	gl::Texture::Format fmt;
-	fmt.setInternalFormat(hdrFormat);
+	fmt.setInternalFormat(GL_R16F);
 	gl::TextureRef tex = gl::Texture2d::create(a.w, a.h, fmt);
 	tex->bind();
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, a.w, a.h, GL_RED, GL_FLOAT, a.data);

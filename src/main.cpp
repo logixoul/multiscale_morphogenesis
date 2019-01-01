@@ -24,6 +24,8 @@ bool pause2=false;
 std::map<int, gl::TextureRef> texs;
 auto imgadd_accum = Array2D<float>(sx,sy);
 
+// I have a `restoring_functionality_after_merge` branch where I attempt to merge supportlib from Tonemaster
+
 struct SApp : App {
 	void setup()
 	{
