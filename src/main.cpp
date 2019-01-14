@@ -16,7 +16,7 @@ typedef WrapModes::GetWrapped WrapMode;
 
 //int wsx=800, wsy=800.0*(800.0/1280.0);
 int wsx=1280, wsy=720;
-int scale=2;
+int scale=4;
 int sx=wsx/::scale;
 int sy=wsy/::scale;
 Array2D<float> img(sx,sy);
@@ -116,6 +116,7 @@ struct SApp : App {
 		sw::timeit("threshold", [&]() {
 			forxy(img) {
 				auto& c=img(p);
+				c = ci::constrain(c, 0.0f, 1.0f);
 				c = 3.0f*c*c-2.0f*c*c*c;
 			}
 		});
