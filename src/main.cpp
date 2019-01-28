@@ -26,6 +26,18 @@ auto imgadd_accum = Array2D<float>(sx,sy);
 
 // I have a `restoring_functionality_after_merge` branch where I attempt to merge supportlib from Tonemaster
 
+template<class T, class FetchFunc>
+Array2D<T> gauss3_(Array2D<T> src) {
+	T zero = ::zero<T>();
+	Array2D<T> dst1(src.w, src.h);
+	Array2D<T> dst2(src.w, src.h);
+	forxy(dst1)
+		dst1(p) = .25f * (2 * FetchFunc::fetch(src, p.x, p.y) + FetchFunc::fetch(src, p.x - 1, p.y) + FetchFunc::fetch(src, p.x + 1, p.y));
+	forxy(dst2)
+		dst2(p) = .25f * (2 * FetchFunc::fetch(dst1, p.x, p.y) + FetchFunc::fetch(dst1, p.x, p.y - 1) + FetchFunc::fetch(dst1, p.x, p.y + 1));
+	return dst2;
+}
+
 struct SApp : App {
 	void setup()
 	{
@@ -97,11 +109,13 @@ struct SApp : App {
 				"	return vec2(-v.y, v.x);"
 				"}"
 			);
+			//auto texb = gauss3tex(tex);
+
 			img = gettexdata<float>(tex, GL_RED, GL_FLOAT);
 		});
 		
 		sw::timeit("blur", [&]() {
-			auto imgb=gaussianBlur(img, 3);
+			auto imgb = gauss3_<float, WrapModes::GetWrapped>(img);//gaussianBlur(img, 3);
 			//img=imgb;
 			forxy(img) {
 				img(p) = lerp(img(p), imgb(p), .8f);
