@@ -109,18 +109,22 @@ struct SApp : App {
 				"	return vec2(-v.y, v.x);"
 				"}"
 			);
-			//auto texb = gauss3tex(tex);
-
-			img = gettexdata<float>(tex, GL_RED, GL_FLOAT);
 		});
 		
 		sw::timeit("blur", [&]() {
-			auto imgb = gauss3_<float, WrapModes::GetWrapped>(img);//gaussianBlur(img, 3);
+			/*auto imgb = gauss3_<float, WrapModes::GetWrapped>(img);//gaussianBlur(img, 3);
 			//img=imgb;
 			forxy(img) {
 				img(p) = lerp(img(p), imgb(p), .8f);
-			}
+			}*/
+			auto texb = gauss3tex(tex);
+			tex = shade2(tex, texb,
+				"float f = fetch1();"
+				"float fb = fetch1(tex2);"
+				"_out.r = mix(f, fb, .8f);"
+			);
 		});
+		img = gettexdata<float>(tex, GL_RED, GL_FLOAT);
 		img = ::to01(img);
 		sw::timeit("restore avg", [&]() {
 			float sum = std::accumulate(img.begin(), img.end(), 0.0f);
