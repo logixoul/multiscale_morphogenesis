@@ -100,7 +100,6 @@ struct SApp : App {
 			img = gettexdata<float>(tex, GL_RED, GL_FLOAT);
 		});
 		
-		img=::to01(img);
 		sw::timeit("blur", [&]() {
 			auto imgb=gaussianBlur(img, 3);
 			//img=imgb;
@@ -108,6 +107,7 @@ struct SApp : App {
 				img(p) = lerp(img(p), imgb(p), .8f);
 			}
 		});
+		img = ::to01(img);
 		sw::timeit("restore avg", [&]() {
 			float sum = std::accumulate(img.begin(), img.end(), 0.0f);
 			float avg = sum / (float)img.area;
