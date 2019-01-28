@@ -873,7 +873,12 @@ inline void setWrapBlack(gl::TextureRef tex) {
 	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
 	tex->setWrap(GL_CLAMP_TO_BORDER, GL_CLAMP_TO_BORDER);
 }
-
+inline void setWrap(gl::TextureRef tex, GLenum wrap) {
+	// I think the border color is transparent black by default. It doesn't hurt that it is transparent.
+	bind(tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+}
 inline Array2D<vec3> merge(vector<Array2D<float> > channels) {
 	Array2D<float>& r = channels[0];
 	Array2D<float>& g = channels[1];

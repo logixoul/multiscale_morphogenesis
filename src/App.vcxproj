@@ -128,6 +128,7 @@
     <ClCompile Include="cfg1.cpp" />
     <ClCompile Include="colorspaces.cpp" />
     <ClCompile Include="easyfft.cpp" />
+    <ClCompile Include="gpuBlur2_5.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -150,6 +151,7 @@
     <ClInclude Include="colorspaces.h" />
     <ClInclude Include="easyfft.h" />
     <ClInclude Include="gpgpu.h" />
+    <ClInclude Include="gpuBlur2_5.h" />
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="qdebug.h" />
     <ClInclude Include="shade.h" />
