@@ -16,7 +16,7 @@ typedef WrapModes::GetWrapped WrapMode;
 
 //int wsx=800, wsy=800.0*(800.0/1280.0);
 int wsx=1280, wsy=720;
-int scale=4;
+int scale=2;
 int sx=wsx/::scale;
 int sy=wsy/::scale;
 Array2D<float> img(sx,sy);
@@ -70,7 +70,10 @@ struct SApp : App {
 	{
 		auto img = aImg.clone();
 		auto abc=cfg1::getOpt("abc", 1.0f,
-			[&]() { return true; },
+			[&]() { return keys['a']; },
+			[&]() { return niceExpRangeX(mouseX, .05f, 1000.0f); });
+		auto contrastizeFactor = cfg1::getOpt("contrastizeFactor", 0.0f,
+			[&]() { return keys['c']; },
 			[&]() { return niceExpRangeX(mouseX, .05f, 1000.0f); });
 
 		auto tex = gtex(img);
@@ -117,7 +120,8 @@ struct SApp : App {
 			forxy(img) {
 				auto& c=img(p);
 				c = ci::constrain(c, 0.0f, 1.0f);
-				c = 3.0f*c*c-2.0f*c*c*c;
+				auto c2 = 3.0f*c*c-2.0f*c*c*c;
+				c = mix(c, c2, contrastizeFactor);
 			}
 		});
 		//forxy(img) img(p)=max(0.0f, min(1.0f, img(p)));
