@@ -16,10 +16,10 @@ typedef WrapModes::GetWrapped WrapMode;
 // now 9fps
 
 //int wsx=800, wsy=800.0*(800.0/1280.0);
-int wsx=1280, wsy=720;
-int scale=2;
-int sx=wsx/::scale;
-int sy=wsy/::scale;
+int wsx=768, wsy=768;
+//int scale=2;
+int sx=512;
+int sy=512;
 Array2D<float> img(sx,sy);
 bool pause2=false;
 std::map<int, gl::TextureRef> texs;
@@ -216,35 +216,7 @@ struct SApp : App {
 		sw::timeit("draw", [&]() {
 			if(1) {
 				auto tex = gtex(img);
-				auto grads = get_gradients_tex(tex);
-				tex = shade2(tex, grads,
-					"float f = fetch1();"
-					"vec2 g = fetch2(tex2) * 100*mouse.x;"
-					"vec3 N = normalize(vec3(g.x, g.y, -1));"
-					"vec3 viewDir = normalize(-vec3(tc - 0.5, 1));"
-					//"if(g.x == 0) g.x = 0.01;"
-					"float angle = atan(g.y, g.x);"
-					"float hue = (angle / pi) *.5 + .5;"
-					"vec3 L = normalize(-vec3(1,-1,1));"
-					"vec3 halfDir = normalize(L + viewDir);"
-					//"float len = ;"
-					"float diffuse = max(0, dot(N, L)) * 1;"
-					"float ambient = .003;"
-					"vec3 c = .3+0*hsv2rgb(vec3(hue, 1, 1));"
-					"c = pow(c, vec3(2.2));"
-					"c *= (diffuse+ambient);"
-					"float spec = max(0, dot(halfDir, N));"
-					"c += pow(spec, 100.0) * 3.0f;"
-					"c /= c + 1;"
-					"c = pow(c, vec3(1/2.2));"
-					"_out = c;"
-					, ShadeOpts().ifmt(GL_RGB16F).scale(::scale),
-					FileCache::get("stuff.fs")
-				);
-				//auto texb = gpuBlur2_5::run(tex, 1);
-				//tex = shade2(tex, texb, "_out.rgb = .5*fetch3() + .5*fetch3(tex2);");
-				//gl::draw(redToLuminance(tex), getWindowBounds());
-				gl::draw(tex, getWindowBounds());
+				gl::draw(redToLuminance(tex), getWindowBounds());
 			} else {
 				vector<gl::TextureRef> ordered;
 				do {
