@@ -39,6 +39,9 @@ Array2D<T> gauss3_(Array2D<T> src) {
 	return dst2;
 }
 
+gl::GlslProgRef prog;
+gl::VboMeshRef	vboMesh;
+
 struct SApp : App {
 	void setup()
 	{
@@ -50,6 +53,55 @@ struct SApp : App {
 		createConsole();
 		disableGLReadClamp();
 		stefanfw::eventHandler.subscribeToEvents(*this);
+
+		auto plane = geom::Plane().size(vec2(wsx, wsy)).subdivisions(ivec2(sx, sy))
+			.axes(vec3(1, 0, 0), vec3(0, 1, 0));
+		vector<gl::VboMesh::Layout> bufferLayout = {
+			gl::VboMesh::Layout().usage(GL_DYNAMIC_DRAW).attrib(geom::Attrib::POSITION, 3),
+			gl::VboMesh::Layout().usage(GL_DYNAMIC_DRAW).attrib(geom::Attrib::NORMAL, 3)
+		};
+
+		vboMesh = gl::VboMesh::create(plane, bufferLayout);
+	}
+	void updateMesh() {
+		auto mappedPosAttrib = vboMesh->mapAttrib3f(geom::Attrib::POSITION, false);
+		for (int i = 0; i <= sx; i++) {
+			for (int j = 0; j <= sy; j++) {
+				mappedPosAttrib->x = i;// +sin(pos.x) * 50;
+				mappedPosAttrib->y = j;// +sin(pos.y) * 50;
+				mappedPosAttrib->z = ::img(i, j);
+				++mappedPosAttrib;
+			}
+		}
+		mappedPosAttrib.unmap();
+
+		auto mappedNormalAttrib = vboMesh->mapAttrib3f(geom::Attrib::NORMAL, false);
+		for (int i = 0; i <= sx; i++) {
+			for (int j = 0; j <= sy; j++) {
+				/*
+				const ivec3 off = ivec3(-1,0,1);
+					float s01 = textureOffset(unit_wave, tex_coord, ivec2(-1,0)).x;
+					float s21 = textureOffset(unit_wave, tex_coord, ivec2(1,0)).x;
+					float s10 = textureOffset(unit_wave, tex_coord, ivec2(0,-1)).x;
+					float s12 = textureOffset(unit_wave, tex_coord, ivec2(0,1)).x;
+					vec3 va = normalize(vec3(size.xy,s21-s01));
+					vec3 vb = normalize(vec3(size.yx,s12-s10));
+					vec4 bump = vec4( cross(va,vb), s11 );
+				*/
+				const float h = 100.0f;
+				float s01 = img.wr(i - 1, j) * h;
+				float s21 = img.wr(i + 1, j) * h;
+				float s10 = img.wr(i, j - 1) * h;
+				float s12 = img.wr(i, j + 1) * h;
+				vec3 va = normalize(vec3(vec2(2, 0), s21 - s01));
+				vec3 vb = normalize(vec3(vec2(0, 2), s12 - s10));
+				*mappedNormalAttrib = cross(va, vb);
+				*mappedNormalAttrib = safeNormalized(*mappedNormalAttrib);
+				//*mappedNormalAttrib = ci::randVec3();
+				++mappedNormalAttrib;
+			}
+		}
+		mappedNormalAttrib.unmap();
 	}
 	void update()
 	{
@@ -206,6 +258,7 @@ struct SApp : App {
 		if(pause2) {
 			return;
 		}
+		updateMesh();
 		img = multiscaleApply(img, update_1_scale);
 		//img = update_1_scale(img);
 	}
@@ -213,10 +266,19 @@ struct SApp : App {
 	{
 		gl::clear(Color(0, 0, 0));
 		cout <<"frame# "<<getElapsedFrames()<<endl;
+
+		gl::setMatricesWindow(vec2(sx, sy), false);
+		gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		gl::disableDepthRead();
+		//vboMesh-> recalculateNormals();
 		sw::timeit("draw", [&]() {
 			if(1) {
-				auto tex = gtex(img);
-				gl::draw(redToLuminance(tex), getWindowBounds());
+				gl::disableBlending();
+				gl::color(Colorf(1, 1, 1));
+				gl::ScopedGlslProg glslScope(gl::getStockShader(gl::ShaderDef().lambert()));
+				gl::draw(vboMesh);
+				//auto tex = gtex(img);
+				//gl::draw(redToLuminance(tex), getWindowBounds());
 			} else {
 				vector<gl::TextureRef> ordered;
 				do {
