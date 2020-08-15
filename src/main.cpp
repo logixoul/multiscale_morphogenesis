@@ -18,8 +18,8 @@ typedef WrapModes::GetWrapped WrapMode;
 //int wsx=800, wsy=800.0*(800.0/1280.0);
 int wsx=768, wsy=768;
 //int scale=2;
-int sx=512;
-int sy=512;
+int sx=256;
+int sy=256;
 Array2D<float> img(sx,sy);
 bool pause2=false;
 std::map<int, gl::TextureRef> texs;
@@ -64,12 +64,13 @@ struct SApp : App {
 		vboMesh = gl::VboMesh::create(plane, bufferLayout);
 	}
 	void updateMesh() {
+		const float h = 100.0f;
 		auto mappedPosAttrib = vboMesh->mapAttrib3f(geom::Attrib::POSITION, false);
 		for (int i = 0; i <= sx; i++) {
 			for (int j = 0; j <= sy; j++) {
 				mappedPosAttrib->x = i;// +sin(pos.x) * 50;
 				mappedPosAttrib->y = j;// +sin(pos.y) * 50;
-				mappedPosAttrib->z = ::img(i, j);
+				mappedPosAttrib->z = ::img(i, j) * 100;
 				++mappedPosAttrib;
 			}
 		}
@@ -88,7 +89,6 @@ struct SApp : App {
 					vec3 vb = normalize(vec3(size.yx,s12-s10));
 					vec4 bump = vec4( cross(va,vb), s11 );
 				*/
-				const float h = 100.0f;
 				float s01 = img.wr(i - 1, j) * h;
 				float s21 = img.wr(i + 1, j) * h;
 				float s10 = img.wr(i, j - 1) * h;
@@ -267,7 +267,8 @@ struct SApp : App {
 		gl::clear(Color(0, 0, 0));
 		cout <<"frame# "<<getElapsedFrames()<<endl;
 
-		gl::setMatricesWindow(vec2(sx, sy), false);
+		gl::setMatricesWindowPersp(vec2(sx, sy), 60.0f, 1.0f, 1000.0f, false);
+		//gl::setMatricesWindow(vec2(sx, sy), false);
 		gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		gl::disableDepthRead();
 		//vboMesh-> recalculateNormals();
