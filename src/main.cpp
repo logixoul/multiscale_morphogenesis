@@ -64,13 +64,13 @@ struct SApp : App {
 		vboMesh = gl::VboMesh::create(plane, bufferLayout);
 	}
 	void updateMesh() {
-		const float h = 100.0f;
+		const float h = 20.0f;
 		auto mappedPosAttrib = vboMesh->mapAttrib3f(geom::Attrib::POSITION, false);
 		for (int i = 0; i <= sx; i++) {
 			for (int j = 0; j <= sy; j++) {
 				mappedPosAttrib->x = i;// +sin(pos.x) * 50;
 				mappedPosAttrib->y = j;// +sin(pos.y) * 50;
-				mappedPosAttrib->z = ::img(i, j) * 40;
+				mappedPosAttrib->z = ::img(i, j) * h;
 				++mappedPosAttrib;
 			}
 		}
@@ -285,7 +285,7 @@ struct SApp : App {
 		in vec3 vertPos;
 		void main(void)
 		{
-			const vec3 L = normalize(vec3(0, 1, 1));
+			const vec3 L = normalize(vec3(0, .2, 1));
 			vec3 N = normalize(Normal);
 			// diffuse
 			float lambert = max(0.0, dot(N, L));
@@ -293,9 +293,9 @@ struct SApp : App {
 			// specular
 			vec3 viewDir = normalize(-vertPos);
 			vec3 halfDir = normalize(L + viewDir);
-			float specAngle = max(dot(halfDir, Normal), 0.0);
+			float specAngle = max(dot(halfDir, N), 0.0);
 			float specular = pow(specAngle, 40.0f) * 10.0f;
-			oColor = vec4(vec3(.9,.9,1) * lambert + vec3(specular) + vec3(.1), 1.0);
+			oColor = vec4(vec3(.1,.1,.2) * (lambert+.1) + vec3(specular), 1.0);
 			oColor.rgb /= oColor.rgb + 1;
 			oColor.rgb = pow(oColor.rgb, vec3(1.0 / 2.2));
 		});
@@ -304,10 +304,12 @@ struct SApp : App {
 		gl::clear(Color(0, 0, 0));
 		cout <<"frame# "<<getElapsedFrames()<<endl;
 
-		gl::setMatricesWindowPersp(vec2(sx, sy), 60.0f, 1.0f, 1000.0f, false);
+		gl::setMatricesWindowPersp(vec2(sx, sy), 90.0f, 1.0f, 1000.0f, false);
 		//gl::setMatricesWindow(vec2(sx, sy), false);
-		gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		gl::disableDepthRead();
+		//gl::clearDepth(0.0f);
+		gl::clear(ColorA::black(), true);
+		//gl::disableDepthRead();
+		gl::enableDepth();
 		
 		sw::timeit("draw", [&]() {
 			if(1) {
