@@ -269,21 +269,35 @@ struct SApp : App {
 		in vec4 ciPosition;
 		in vec3 ciNormal;
 		out highp vec3 Normal;
+		out vec3 vertPos;
+		// https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model#OpenGL_Shading_Language_code_sample
 		void main(void)
 		{
 			gl_Position = ciModelViewProjection * ciPosition;
+			vec4 vertPos4 = gl_Position;
+			vertPos = vec3(vertPos4) / vertPos4.w;
 			Normal = ciNormalMatrix * ciNormal;
 		}
 		);
 	string fs=CI_GLSL(150,
 		out vec4 oColor;
 		in vec3 Normal;
+		in vec3 vertPos;
 		void main(void)
 		{
-			const vec3 L = vec3(0, 0, 1);
+			const vec3 L = normalize(vec3(0, 1, 1));
 			vec3 N = normalize(Normal);
+			// diffuse
 			float lambert = max(0.0, dot(N, L));
-			oColor = vec4(1) * vec4(vec3(lambert), 1.0);
+			
+			// specular
+			vec3 viewDir = normalize(-vertPos);
+			vec3 halfDir = normalize(L + viewDir);
+			float specAngle = max(dot(halfDir, Normal), 0.0);
+			float specular = pow(specAngle, 40.0f) * 10.0f;
+			oColor = vec4(vec3(.9,.9,1) * lambert + vec3(specular) + vec3(.1), 1.0);
+			oColor.rgb /= oColor.rgb + 1;
+			oColor.rgb = pow(oColor.rgb, vec3(1.0 / 2.2));
 		});
 	void stefanDraw()
 	{
@@ -294,12 +308,11 @@ struct SApp : App {
 		//gl::setMatricesWindow(vec2(sx, sy), false);
 		gl::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		gl::disableDepthRead();
-		//vboMesh-> recalculateNormals();
+		
 		sw::timeit("draw", [&]() {
 			if(1) {
 				gl::disableBlending();
 				gl::color(Colorf(1, 1, 1));
-				//gl::ScopedGlslProg glslScope(gl::getStockShader(gl::ShaderDef().lambert()));
 				static auto prog = gl::GlslProg::create(vs, fs);
 				gl::ScopedGlslProg glslScope(prog);
 				gl::draw(vboMesh);
