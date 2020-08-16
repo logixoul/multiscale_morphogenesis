@@ -137,6 +137,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">precompiled.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="qdebug.cpp" />
+    <ClCompile Include="RasterizationRenderer.cpp" />
     <ClCompile Include="shade.cpp" />
     <ClCompile Include="simplexnoise.cpp" />
     <ClCompile Include="stefanfw.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="gpuBlur2_5.h" />
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="qdebug.h" />
+    <ClInclude Include="RasterizationRenderer.h" />
     <ClInclude Include="shade.h" />
     <ClInclude Include="simplexnoise.h" />
     <ClInclude Include="stefanfw.h" />

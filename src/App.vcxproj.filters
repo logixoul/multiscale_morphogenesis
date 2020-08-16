@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="TextureCache.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="sw.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="stuff.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="stefanfw.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="simplexnoise.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="shade.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="qdebug.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="precompiled.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="gpuBlur2_5.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="easyfft.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="colorspaces.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="cfg1.cpp">
+      <Filter>supportlib</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterizationRenderer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TextureCache.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="sw.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="stuff.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="stefanfw.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="simplexnoise.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="shade.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="qdebug.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="precompiled.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="gpuBlur2_5.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="gpgpu.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="easyfft.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="colorspaces.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="cfg1.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="bicubic.h">
+      <Filter>supportlib</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterizationRenderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="hcl_lib.fs" />
+    <None Include="stuff.fs">
+      <Filter>supportlib</Filter>
+    </None>
+    <None Include="simplexnoise3d.fs.glsl">
+      <Filter>supportlib</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="OldCode.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="supportlib">
+      <UniqueIdentifier>{812c05b6-2513-4d0f-ad3d-5b0bdc792534}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
