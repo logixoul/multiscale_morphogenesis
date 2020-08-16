@@ -70,7 +70,7 @@ struct SApp : App {
 			for (int j = 0; j <= sy; j++) {
 				mappedPosAttrib->x = i;// +sin(pos.x) * 50;
 				mappedPosAttrib->y = j;// +sin(pos.y) * 50;
-				mappedPosAttrib->z = ::img(i, j) * 100;
+				mappedPosAttrib->z = ::img(i, j) * 40;
 				++mappedPosAttrib;
 			}
 		}
@@ -262,6 +262,29 @@ struct SApp : App {
 		img = multiscaleApply(img, update_1_scale);
 		//img = update_1_scale(img);
 	}
+	string vs=CI_GLSL(150,
+		uniform mat4 ciModelViewProjection;
+		uniform mat3 ciNormalMatrix;
+
+		in vec4 ciPosition;
+		in vec3 ciNormal;
+		out highp vec3 Normal;
+		void main(void)
+		{
+			gl_Position = ciModelViewProjection * ciPosition;
+			Normal = ciNormalMatrix * ciNormal;
+		}
+		);
+	string fs=CI_GLSL(150,
+		out vec4 oColor;
+		in vec3 Normal;
+		void main(void)
+		{
+			const vec3 L = vec3(0, 0, 1);
+			vec3 N = normalize(Normal);
+			float lambert = max(0.0, dot(N, L));
+			oColor = vec4(1) * vec4(vec3(lambert), 1.0);
+		});
 	void stefanDraw()
 	{
 		gl::clear(Color(0, 0, 0));
@@ -276,7 +299,9 @@ struct SApp : App {
 			if(1) {
 				gl::disableBlending();
 				gl::color(Colorf(1, 1, 1));
-				gl::ScopedGlslProg glslScope(gl::getStockShader(gl::ShaderDef().lambert()));
+				//gl::ScopedGlslProg glslScope(gl::getStockShader(gl::ShaderDef().lambert()));
+				static auto prog = gl::GlslProg::create(vs, fs);
+				gl::ScopedGlslProg glslScope(prog);
 				gl::draw(vboMesh);
 				//auto tex = gtex(img);
 				//gl::draw(redToLuminance(tex), getWindowBounds());
