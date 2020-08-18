@@ -138,6 +138,7 @@
     </ClCompile>
     <ClCompile Include="qdebug.cpp" />
     <ClCompile Include="RasterizationRenderer.cpp" />
+    <ClCompile Include="RaymarchingRenderer.cpp" />
     <ClCompile Include="shade.cpp" />
     <ClCompile Include="simplexnoise.cpp" />
     <ClCompile Include="stefanfw.cpp" />
@@ -156,6 +157,7 @@
     <ClInclude Include="precompiled.h" />
     <ClInclude Include="qdebug.h" />
     <ClInclude Include="RasterizationRenderer.h" />
+    <ClInclude Include="RaymarchingRenderer.h" />
     <ClInclude Include="shade.h" />
     <ClInclude Include="simplexnoise.h" />
     <ClInclude Include="stefanfw.h" />

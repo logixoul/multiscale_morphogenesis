@@ -42,6 +42,7 @@
       <Filter>supportlib</Filter>
     </ClCompile>
     <ClCompile Include="RasterizationRenderer.cpp" />
+    <ClCompile Include="RaymarchingRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TextureCache.h">
@@ -90,6 +91,7 @@
       <Filter>supportlib</Filter>
     </ClInclude>
     <ClInclude Include="RasterizationRenderer.h" />
+    <ClInclude Include="RaymarchingRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="hcl_lib.fs" />

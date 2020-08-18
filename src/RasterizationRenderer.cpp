@@ -35,7 +35,7 @@ static const string fs = CI_GLSL(150,
 		vec3 halfDir = normalize(L + viewDir);
 		float specAngle = max(dot(halfDir, N), 0.0);
 		float specular = pow(specAngle, 40.0f) * 10.0f;
-		oColor = vec4(vec3(.1, .1, .2) * (lambert + .1) + vec3(specular), 1.0);
+		oColor = vec4(vec3(.01, .01, .2) * (lambert + .1) + vec3(specular), 1.0);
 		oColor.rgb /= oColor.rgb + 1;
 		oColor.rgb = pow(oColor.rgb, vec3(1.0 / 2.2));
 	}
@@ -51,11 +51,10 @@ void RasterizationRenderer::render(Array2D<float> img)
 	gl::ScopedGlslProg glslScope(prog);
 	gl::draw(vboMesh);
 }
-ivec2 ws, s;
 RasterizationRenderer::RasterizationRenderer(ivec2 ws, ivec2 s)
 {
-	::ws = ws;
-	::s = s;
+	this->ws = ws;
+	this->s = s;
 	auto plane = geom::Plane().size(vec2(ws.x, ws.y)).subdivisions(ivec2(s.x, s.y))
 		.axes(vec3(1, 0, 0), vec3(0, 1, 0));
 	vector<gl::VboMesh::Layout> bufferLayout = {

@@ -10,5 +10,6 @@ public:
 private:
 	void updateMesh(Array2D<float> img);
 	gl::VboMeshRef	vboMesh;
+	ivec2 ws, s;
 };
 
